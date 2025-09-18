@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="${pageTitle} + ' - SecBooks'">Books - SecBooks</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" th:href="@{/favicon.ico}">
+    <link rel="icon" type="image/svg+xml" th:href="@{/favicon.svg}">
+    
+    <link rel="stylesheet" th:href="@{/css/bootstrap.min.css}">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <script th:src="@{/js/jquery.min.js}"></script>
+    <script th:src="@{/js/bootstrap.bundle.min.js}"></script>
+</head>
+<body>
+
+<!-- Include navigation fragment -->
+<div th:replace="~{fragments/topnav :: topnav}"></div>
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-3">
+            <!-- Sidebar -->
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Browse Categories</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="/books" class="btn btn-outline-primary btn-sm" 
+                           th:classappend="${currentCategory == null} ? 'active' : ''">All Books</a>
+                        <a th:each="cat : ${categories}" 
+                           th:href="@{/books(category=${cat})}" 
+                           th:text="${cat}"
+                           th:classappend="${currentCategory == cat} ? 'active' : ''"
+                           class="btn btn-outline-primary btn-sm">Category</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Featured Books -->
+            <div class="card mt-3">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">Featured Books</h5>
+                </div>
+                <div class="card-body">
+                    <div th:each="book : ${featuredBooks}" class="mb-2">
+                        <small>
+                            <strong th:text="${book.title}">Book Title</strong><br>
+                            <span class="text-muted" th:text="${book.author}">Author</span><br>
+                            <span class="text-success" th:text="'$' + ${book.price}">Price</span>
+                        </small>
+                        <hr class="my-2">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-9">
+            <!-- Search Bar -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <form method="get" action="/books">
+                        <div class="row">
+                            <div class="col-md-10">
+                                <input type="text" name="search" class="form-control" 
+                                       placeholder="Search books by title..." th:value="${searchQuery}">
+                            </div>
+                            <div class="col-md-2">
+                                <button type="submit" class="btn btn-primary w-100">Search</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Page Title -->
+            <h2 th:text="${pageTitle}">All Books</h2>
+            <p class="text-muted" th:text="${books.size()} + ' books found'">12 books found</p>
+
+            <!-- Books Grid -->
+            <div class="row">
+                <div th:each="book : ${books}" class="col-md-4 mb-4">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h5 class="card-title" th:text="${book.title}">Book Title</h5>
+                            <p class="card-text">
+                                <strong>Author:</strong> <span th:text="${book.author}">Author Name</span><br>
+                                <strong>Category:</strong> <span th:text="${book.category}">Category</span><br>
+                                <strong>Publisher:</strong> <span th:text="${book.publisher}">Publisher</span><br>
+                                <strong>ISBN:</strong> <span th:text="${book.isbn}">ISBN</span>
+                            </p>
+                            <p class="card-text" th:text="${book.description}">Book description goes here...</p>
+                        </div>
+                        <div class="card-footer">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="h5 text-success mb-0" th:text="'$' + ${book.price}">$29.99</span>
+                                <div>
+                                    <small class="text-muted">Rating: </small>
+                                    <span class="badge bg-warning text-dark" th:text="${book.rating} + '/5'">4.5/5</span>
+                                </div>
+                            </div>
+                            <div class="mt-2">
+                                <small class="text-muted">
+                                    Stock: <span th:text="${book.stock}">25</span> available
+                                </small>
+                            </div>
+                            <div class="mt-2">
+                                <div class="input-group input-group-sm">
+                                    <button class="btn btn-outline-secondary qty-btn" type="button" 
+                                            onclick="decreaseQuantity(this)">-</button>
+                                    <input type="number" class="form-control text-center quantity-input" 
+                                           value="1" min="1" max="10" 
+                                           th:max="${book.stock}"
+                                           th:data-book-id="${book.id}">
+                                    <button class="btn btn-outline-secondary qty-btn" type="button" 
+                                            onclick="increaseQuantity(this)">+</button>
+                                </div>
+                            </div>
+                            <button class="btn btn-sm mt-2 w-100 add-to-cart-btn" 
+                                    th:data-book-id="${book.id}" 
+                                    th:data-book-title="${book.title}" 
+                                    th:data-book-price="${book.price}"
+                                    th:classappend="${book.stock == null or book.stock <= 0} ? 'btn-secondary' : 'btn-primary'"
+                                    th:disabled="${book.stock == null or book.stock <= 0}"
+                                    th:text="${book.stock == null or book.stock <= 0} ? 'Out of Stock' : 'Add to Cart'">
+                                Add to Cart
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- No books found message -->
+            <div th:if="${books.empty}" class="text-center mt-5">
+                <h4>No books found</h4>
+                <p class="text-muted">Try adjusting your search criteria or browse different categories.</p>
+                <a href="/books" class="btn btn-primary">View All Books</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<footer class="bg-dark text-light mt-5 py-4">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-6">
+                <h5>SecBooks Online</h5>
+                <p>Your trusted partner for books since 2025</p>
+            </div>
+            <div class="col-md-6">
+                <h5>Contact</h5>
+                <p>Email: support@secbooks.com<br>Phone: 1-800-SECBOOK</p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- Include navigation script fragment -->
+<div th:replace="~{fragments/topnav :: topnav-script}"></div>
+
+<script>
+$(document).ready(function() {
+    // Check purchase status when page loads
+    checkPurchaseStatus();
+    
+    // Handle add to cart button clicks
+    $('.add-to-cart-btn').on('click', function() {
+        const bookId = $(this).data('book-id');
+        const bookTitle = $(this).data('book-title');
+        const bookPrice = $(this).data('book-price');
+        const quantity = parseInt($(`.quantity-input[data-book-id="${bookId}"]`).val()) || 1;
+        
+        addToCart(bookId, bookTitle, bookPrice, quantity);
+    });
+});
+
+function checkPurchaseStatus() {
+    const authToken = localStorage.getItem("authToken");
+    if (!authToken) {
+        // User not logged in - disable add to cart buttons
+        $('.add-to-cart-btn').text('Login Required').prop('disabled', true);
+        return;
+    }
+    
+    $.ajax({
+        url: '/api/purchase/status',
+        type: 'GET',
+        headers: {
+            'Authorization': 'Bearer ' + authToken
+        },
+        success: function(response) {
+            if (!response.canPurchase) {
+                $('.add-to-cart-btn').each(function() {
+                    if (response.accountStatus === 'PENDING') {
+                        $(this).text('Account Pending').addClass('btn-warning').removeClass('btn-primary').prop('disabled', true);
+                    } else {
+                        $(this).text('Cannot Add to Cart').addClass('btn-danger').removeClass('btn-primary').prop('disabled', true);
+                    }
+                });
+                
+                // Show status message at top of page
+                if (response.accountStatus === 'PENDING') {
+                    showStatusMessage('warning', 'Your account is pending approval. Contact an administrator to activate your account before adding items to cart.');
+                } else {
+                    showStatusMessage('danger', 'Your account status does not allow purchases: ' + response.accountStatus);
+                }
+            } else {
+                // Update cart count for logged in users
+                updateCartCount();
+            }
+        },
+        error: function(xhr) {
+            if (xhr.status === 401) {
+                $('.add-to-cart-btn').text('Login Required').prop('disabled', true);
+            }
+        }
+    });
+}
+
+function increaseQuantity(bookId) {
+    const input = $(`.quantity-input[data-book-id="${bookId}"]`);
+    let currentValue = parseInt(input.val()) || 1;
+    input.val(currentValue + 1);
+}
+
+function decreaseQuantity(bookId) {
+    const input = $(`.quantity-input[data-book-id="${bookId}"]`);
+    let currentValue = parseInt(input.val()) || 1;
+    if (currentValue > 1) {
+        input.val(currentValue - 1);
+    }
+}
+
+function addToCart(bookId, bookTitle, bookPrice, quantity) {
+    const token = localStorage.getItem('authToken');
+    
+    if (!token) {
+        alert('Please login first');
+        return;
+    }
+    
+    // Show loading state
+    $(`.add-to-cart-btn[data-book-id="${bookId}"]`).prop('disabled', true).text('Adding...');
+    
+    $.ajax({
+        url: '/api/cart/add',
+        type: 'POST',
+        headers: {
+            'Authorization': 'Bearer ' + token,
+            'Content-Type': 'application/json'
+        },
+        data: JSON.stringify({ 
+            bookId: bookId,
+            quantity: quantity 
+        }),
+        success: function(response) {
+            // Show success message
+            alert(`Added ${quantity} x "${bookTitle}" to cart!`);
+            
+            // Reset button state
+            $(`.add-to-cart-btn[data-book-id="${bookId}"]`).prop('disabled', false).text('Add to Cart');
+            
+            // Reset quantity to 1
+            $(`.quantity-input[data-book-id="${bookId}"]`).val(1);
+            
+            // Update cart count if there's a cart indicator
+            updateCartCount();
+        },
+        error: function(xhr, status, error) {
+            console.error('Error adding to cart:', xhr.responseText);
+            alert('Failed to add book to cart. Please try again.');
+            
+            // Reset button state
+            $(`.add-to-cart-btn[data-book-id="${bookId}"]`).prop('disabled', false).text('Add to Cart');
+        }
+    });
+}
+
+function updateCartCount() {
+    const token = localStorage.getItem('authToken');
+    
+    if (!token) return;
+    
+    $.ajax({
+        url: '/api/cart',
+        type: 'GET',
+        headers: {
+            'Authorization': 'Bearer ' + token
+        },
+        success: function(response) {
+            // Update cart count display if exists
+            const totalItems = response.items ? response.items.reduce((sum, item) => sum + item.quantity, 0) : 0;
+            $('.cart-count').text(totalItems);
+        },
+        error: function(xhr, status, error) {
+            console.error('Error getting cart count:', xhr.responseText);
+        }
+    });
+}
+
+function purchaseBook(bookId, bookTitle, bookPrice) {
+    const authToken = localStorage.getItem("authToken");
+    if (!authToken) {
+        alert('Please login to purchase books');
+        return;
+    }
+    
+    // Disable the button to prevent double-clicks
+    const button = $(`button[data-book-id="${bookId}"]`);
+    button.prop('disabled', true).text('Processing...');
+    
+    $.ajax({
+        url: '/api/purchase/book',
+        type: 'POST',
+        headers: {
+            'Authorization': 'Bearer ' + authToken,
+            'Content-Type': 'application/json'
+        },
+        data: JSON.stringify({
+            bookId: bookId
+        }),
+        success: function(response) {
+            // Store purchase confirmation data in localStorage
+            const confirmationData = {
+                sessionId: response.sessionId,
+                bookTitle: response.bookTitle,
+                bookAuthor: response.bookAuthor,
+                price: response.price,
+                expiresAt: response.expiresAt,
+                remainingCredit: response.remainingCredit
+            };
+            
+            localStorage.setItem('purchaseConfirmation', JSON.stringify(confirmationData));
+            
+            // Redirect to confirmation page
+            window.location.href = `/purchase/confirm?sessionId=${response.sessionId}`;
+        },
+        error: function(xhr) {
+            // Re-enable the button
+            button.prop('disabled', false).text('Purchase Book');
+            
+            const errorResponse = xhr.responseJSON;
+            if (errorResponse) {
+                alert('Purchase failed: ' + (errorResponse.message || errorResponse.error));
+            } else {
+                alert('Purchase failed. Please try again.');
+            }
+        }
+    });
+}
+
+function showStatusMessage(type, message) {
+    const alertHtml = `
+        <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    `;
+    
+    // Insert at the top of the main container
+    $('.container').first().prepend(alertHtml);
+}
+</script>
+
+</body>
+</html>

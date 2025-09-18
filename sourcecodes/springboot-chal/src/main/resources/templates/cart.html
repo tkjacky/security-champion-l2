@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shopping Cart - SecChamp Library</title>
+    <div th:replace="~{fragments/topnav :: favicon}"></div>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        .cart-item {
+            border-bottom: 1px solid #eee;
+            padding: 1rem 0;
+        }
+        .cart-item:last-child {
+            border-bottom: none;
+        }
+        .book-cover {
+            width: 80px;
+            height: 120px;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+        .quantity-controls {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .quantity-btn {
+            width: 30px;
+            height: 30px;
+            border: 1px solid #ddd;
+            background: white;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+        .quantity-btn:hover {
+            background: #f8f9fa;
+        }
+        .quantity-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .cart-total {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 1.5rem;
+        }
+        .checkout-section {
+            position: sticky;
+            top: 20px;
+        }
+        .empty-cart {
+            text-align: center;
+            padding: 3rem;
+            color: #6c757d;
+        }
+        .loading {
+            text-align: center;
+            padding: 2rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- Include navigation -->
+    <div th:replace="~{fragments/topnav :: topnav}"></div>
+
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-md-8">
+                <h2 class="mb-4">Shopping Cart</h2>
+                
+                <!-- Loading state -->
+                <div id="loading" class="loading">
+                    <div class="spinner-border" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-2">Loading your cart...</p>
+                </div>
+                
+                <!-- Empty cart state -->
+                <div id="empty-cart" class="empty-cart" style="display: none;">
+                    <h4>Your cart is empty</h4>
+                    <p>Browse our collection and add some books to your cart!</p>
+                    <a href="/books" class="btn btn-primary">Browse Books</a>
+                </div>
+                
+                <!-- Cart items -->
+                <div id="cart-items"></div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="checkout-section">
+                    <div class="cart-total">
+                        <h4>Order Summary</h4>
+                        
+                        <!-- Credit Limit Display -->
+                        <div id="credit-display" class="alert alert-info mb-3" style="display: none;">
+                            <small><strong>💳 Credit Limit:</strong> <span id="user-credit">$0.00</span></small>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between mt-3">
+                            <span>Items (<span id="total-items">0</span>):</span>
+                            <span id="subtotal">$0.00</span>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span>Shipping:</span>
+                            <span class="text-success">FREE</span>
+                        </div>
+                        <hr>
+                        <div class="d-flex justify-content-between">
+                            <strong>Total:</strong>
+                            <strong id="total">$0.00</strong>
+                        </div>
+                        <button id="checkout-btn" class="btn btn-success w-100 mt-3" disabled>
+                            Proceed to Checkout
+                        </button>
+                        <div class="mt-2">
+                            <small class="text-muted">Free shipping on all orders</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Include navigation script fragment -->
+    <div th:replace="~{fragments/topnav :: topnav-script}"></div>
+
+    <script>
+        $(document).ready(function() {
+            loadCart();
+            
+            // Handle checkout button
+            $('#checkout-btn').on('click', function() {
+                if ($(this).prop('disabled')) return;
+                
+                const token = localStorage.getItem('authToken');
+                if (!token) {
+                    alert('Please login to checkout');
+                    return;
+                }
+                
+                // Redirect to checkout confirmation page
+                window.location.href = '/checkout';
+            });
+        });
+        
+        function loadCart() {
+            const token = localStorage.getItem('authToken');
+            
+            if (!token) {
+                showError('Please login to view your cart');
+                return;
+            }
+            
+            $('#loading').show();
+            $('#empty-cart').hide();
+            $('#cart-items').empty();
+            
+            // Load cart items and user credit info in parallel
+            Promise.all([
+                $.ajax({
+                    url: '/api/cart',
+                    type: 'GET',
+                    headers: { 'Authorization': 'Bearer ' + token }
+                }),
+                $.ajax({
+                    url: '/api/users',
+                    type: 'GET',
+                    headers: { 'Authorization': 'Bearer ' + token }
+                })
+            ]).then(function([cartResponse, userResponse]) {
+                $('#loading').hide();
+                
+                // Display user credit
+                if (userResponse && userResponse.length > 0) {
+                    const user = userResponse[0];
+                    $('#user-credit').text('$' + user.creditLimit.toFixed(2));
+                    $('#credit-display').show();
+                }
+                
+                // Display cart
+                if (!cartResponse.items || cartResponse.items.length === 0) {
+                    showEmptyCart();
+                    return;
+                }
+                
+                displayCartItems(cartResponse.items);
+                updateCartSummary({ items: cartResponse.items, totalPrice: cartResponse.totalPrice });
+                
+            }).catch(function(xhr) {
+                $('#loading').hide();
+                console.error('Error loading cart:', xhr.responseText);
+                showError('Failed to load cart. Please try again.');
+            });
+        }
+        
+        function showEmptyCart() {
+            $('#empty-cart').show();
+            $('#cart-items').empty();
+            updateCartSummary({ items: [], totalPrice: 0 });
+        }
+        
+        function showError(message) {
+            $('#loading').hide();
+            $('#cart-items').html(`
+                <div class="alert alert-danger" role="alert">
+                    ${message}
+                </div>
+            `);
+        }
+        
+        function displayCartItems(items) {
+            let html = '';
+            
+            items.forEach(item => {
+                html += `
+                    <div class="cart-item" data-item-id="${item.id}">
+                        <div class="row align-items-center">
+                            <div class="col-2">
+                                <p>${item.book.title}</p>
+                            </div>
+                            <div class="col-4">
+                                <h6 class="mb-1">${item.book.title}</h6>
+                                <p class="text-muted mb-1">by ${item.book.author}</p>
+                                <p class="text-success mb-0">$${item.book.price.toFixed(2)}</p>
+                            </div>
+                            <div class="col-3">
+                                <div class="quantity-controls">
+                                    <button class="quantity-btn" onclick="updateQuantity(${item.id}, ${item.quantity - 1})" 
+                                            ${item.quantity <= 1 ? 'disabled' : ''}>-</button>
+                                    <span class="mx-2">${item.quantity}</span>
+                                    <button class="quantity-btn" onclick="updateQuantity(${item.id}, ${item.quantity + 1})">+</button>
+                                </div>
+                            </div>
+                            <div class="col-2">
+                                <strong>$${(item.book.price * item.quantity).toFixed(2)}</strong>
+                            </div>
+                            <div class="col-1">
+                                <button class="btn btn-sm btn-outline-danger" onclick="removeItem(${item.id})" title="Remove item">
+                                    ×
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            $('#cart-items').html(html);
+        }
+        
+        function updateCartSummary(cart) {
+            const totalItems = cart.items ? cart.items.reduce((sum, item) => sum + item.quantity, 0) : 0;
+            const total = cart.totalPrice || 0;
+            
+            $('#total-items').text(totalItems);
+            $('#subtotal').text('$' + total.toFixed(2));
+            $('#total').text('$' + total.toFixed(2));
+            
+            // Enable/disable checkout button
+            $('#checkout-btn').prop('disabled', totalItems === 0);
+        }
+        
+        function updateQuantity(itemId, newQuantity) {
+            if (newQuantity < 1) {
+                removeItem(itemId);
+                return;
+            }
+            
+            const token = localStorage.getItem('authToken');
+            
+            $.ajax({
+                url: `/api/cart/items/${itemId}`,
+                type: 'PUT',
+                headers: {
+                    'Authorization': 'Bearer ' + token,
+                    'Content-Type': 'application/json'
+                },
+                data: JSON.stringify({ quantity: newQuantity }),
+                success: function(response) {
+                    loadCart(); // Reload cart to show updated quantities
+                    // Update cart count in navigation
+                    if (window.updateCartCount) {
+                        window.updateCartCount();
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error updating quantity:', xhr.responseText);
+                    alert('Failed to update quantity. Please try again.');
+                }
+            });
+        }
+        
+        function removeItem(itemId) {
+            if (!confirm('Remove this item from your cart?')) {
+                return;
+            }
+            
+            const token = localStorage.getItem('authToken');
+            
+            $.ajax({
+                url: `/api/cart/items/${itemId}`,
+                type: 'DELETE',
+                headers: {
+                    'Authorization': 'Bearer ' + token
+                },
+                success: function(response) {
+                    loadCart(); // Reload cart to show updated items
+                    // Update cart count in navigation
+                    if (window.updateCartCount) {
+                        window.updateCartCount();
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error removing item:', xhr.responseText);
+                    alert('Failed to remove item. Please try again.');
+                }
+            });
+        }
+    </script>
+</body>
+</html>

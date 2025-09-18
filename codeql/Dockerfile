@@ -1,0 +1,110 @@
+# Use Ubuntu as base image
+FROM ubuntu:22.04
+
+# Set environment variables
+ENV PYTHONUNBUFFERED=1
+ENV DEBIAN_FRONTEND=noninteractive
+ENV APP_DIR=/app
+ENV CODEQL_PATH=/usr/local/codeql
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    python3 \
+    python3-pip \
+    python3-dev \
+    wget \
+    unzip \
+    curl \
+    git \
+    build-essential \
+    gcc \
+    g++ \
+    make \
+    cmake \
+    openjdk-11-jdk \
+    maven \
+    mono-mcs \
+    mono-runtime \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install .NET SDK (8.0) using official Microsoft script
+RUN apt-get update && apt-get install -y curl jq unzip \
+    && curl -sSL https://dot.net/v1/dotnet-install.sh -o dotnet-install.sh \
+    && bash dotnet-install.sh --channel 8.0 --install-dir /usr/share/dotnet \
+    && rm dotnet-install.sh
+
+# Set environment variables for .NET CLI
+ENV DOTNET_ROOT=/usr/share/dotnet
+ENV PATH="${PATH}:${DOTNET_ROOT}"
+
+
+# Create symbolic link for python
+RUN ln -s /usr/bin/python3 /usr/bin/python
+
+# Set Java environment variables
+ENV JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64
+ENV PATH="${JAVA_HOME}/bin:${PATH}"
+
+# Download and install CodeQL bundle (includes CLI + extractors + standard libraries)
+RUN mkdir -p /usr/local && \
+    cd /usr/local && \
+    wget -q https://github.com/github/codeql-action/releases/download/codeql-bundle-v2.22.3/codeql-bundle-linux64.tar.gz && \
+    tar -xzf codeql-bundle-linux64.tar.gz && \
+    rm codeql-bundle-linux64.tar.gz && \
+    chmod +x codeql/codeql
+
+# Set CodeQL environment variables properly
+ENV CODEQL_HOME=/usr/local/codeql
+ENV PATH="/usr/local/codeql:${PATH}"
+
+# Verify CodeQL extractors are available
+RUN codeql resolve languages
+
+# Install additional useful packages for code analysis
+RUN apt-get update && apt-get install -y \
+    vim \
+    nano \
+    tree \
+    htop \
+    less \
+    grep \
+    findutils \
+    file \
+    strace \
+    ltrace \
+    zip \
+    nodejs \
+    npm \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Python packages commonly used with CodeQL
+RUN pip3 install --no-cache-dir \
+    requests \
+    pyyaml \
+    click \
+    colorama \
+    jinja2
+
+# Create a non-root user for running CodeQL
+RUN useradd -m -s /bin/bash codeql && \
+    mkdir -p /home/codeql/workspace && \
+    chown -R codeql:codeql /home/codeql
+
+# Create app directory and set permissions
+RUN mkdir -p $APP_DIR && \
+    chown -R codeql:codeql $APP_DIR
+
+WORKDIR $APP_DIR
+
+# Switch to non-root user
+USER codeql
+
+# Set up CodeQL workspace
+RUN mkdir -p /home/codeql/databases /home/codeql/queries /home/codeql/results
+
+# Verify CodeQL installation
+RUN codeql version
+
+# Set default command to bash for interactive use
+CMD ["/bin/bash"]
+

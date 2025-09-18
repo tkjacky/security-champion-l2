@@ -1,0 +1,875 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Panel - SecChamp Library</title>
+    <link rel="stylesheet" th:href="@{/css/bootstrap.min.css}">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <script th:src="@{/js/jquery.min.js}"></script>
+    <script th:src="@{/js/bootstrap.bundle.min.js}"></script>
+</head>
+<body>
+
+<!-- Include navigation fragment -->
+<div th:replace="~{fragments/topnav :: topnav}"></div>
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <h1>Admin Panel</h1>
+            <p class="text-muted">Manage users and books in the system</p>
+
+            <!-- Navigation Tabs -->
+            <ul class="nav nav-tabs mb-4" id="adminTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="users-tab" data-bs-toggle="tab" data-bs-target="#users-panel" type="button" role="tab" aria-controls="users-panel" aria-selected="true">
+                        <i class="fas fa-users"></i> User Management
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="books-tab" data-bs-toggle="tab" data-bs-target="#books-panel" type="button" role="tab" aria-controls="books-panel" aria-selected="false">
+                        <i class="fas fa-book"></i> Book Management
+                    </button>
+                </li>
+            </ul>
+
+            <!-- Tab Content -->
+            <div class="tab-content" id="adminTabContent">
+                
+                <!-- Users Panel -->
+                <div class="tab-pane fade show active" id="users-panel" role="tabpanel" aria-labelledby="users-tab">
+
+            <!-- Admin Actions -->
+            <div class="card mb-4">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0">Administrator Controls</h5>
+                </div>
+                <div class="card-body">
+                    <button class="btn btn-primary" onclick="loadUsers()">Refresh Users</button>
+                    <button class="btn btn-success" onclick="exportUsers()">Export User Data</button>
+                    <button class="btn btn-warning" onclick="showBulkActions()">Bulk Actions</button>
+                </div>
+            </div>
+
+            <!-- Users Table -->
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">User Management</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover" id="usersTable">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Name</th>
+                                    <th>Email</th>
+                                    <th>Role</th>
+                                    <th>Status</th>
+                                    <th>Admin</th>
+                                    <th>Credit Limit</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="usersTableBody">
+                                <tr>
+                                    <td colspan="8" class="text-center">Loading users...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Error and Success Messages -->
+            <div class="alert alert-danger mt-3" id="errorDiv" style="display: none;">
+                <p id="errorText"></p>
+            </div>
+
+            <div class="alert alert-success mt-3" id="successDiv" style="display: none;">
+                <p id="successText"></p>
+            </div>
+
+                </div> <!-- End Users Panel -->
+
+                <!-- Books Panel -->
+                <div class="tab-pane fade" id="books-panel" role="tabpanel" aria-labelledby="books-tab">
+                    
+                    <!-- Book Actions -->
+                    <div class="card mb-4">
+                        <div class="card-header bg-info text-white">
+                            <h5 class="mb-0">Book Controls</h5>
+                        </div>
+                        <div class="card-body">
+                            <button class="btn btn-primary" onclick="loadBooks()">Refresh Books</button>
+                            <button class="btn btn-success" onclick="showAddBookModal()">Add New Book</button>
+                            <button class="btn btn-warning" onclick="exportBooks()">Export Book Data</button>
+                        </div>
+                    </div>
+
+                    <!-- Books Table -->
+                    <div class="card">
+                        <div class="card-header bg-secondary text-white">
+                            <h5 class="mb-0">Book Inventory</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-striped table-hover" id="booksTable">
+                                    <thead class="table-dark">
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Title</th>
+                                            <th>Author</th>
+                                            <th>Category</th>
+                                            <th>Price</th>
+                                            <th>Stock</th>
+                                            <th>Rating</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="booksTableBody">
+                                        <tr>
+                                            <td colspan="8" class="text-center">Loading books...</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Book Error and Success Messages -->
+                    <div class="alert alert-danger mt-3" id="bookErrorDiv" style="display: none;">
+                        <p id="bookErrorText"></p>
+                    </div>
+
+                    <div class="alert alert-success mt-3" id="bookSuccessDiv" style="display: none;">
+                        <p id="bookSuccessText"></p>
+                    </div>
+
+                </div> <!-- End Books Panel -->
+            </div> <!-- End Tab Content -->
+
+        </div>
+    </div>
+</div>
+
+<!-- Edit User Modal -->
+<div class="modal fade" id="editUserModal" tabindex="-1" aria-labelledby="editUserModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editUserModalLabel">Edit User</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editUserForm">
+                    <input type="hidden" id="editUserId" name="userId">
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="editName" class="form-label">Full Name</label>
+                                <input type="text" class="form-control" id="editName" name="name" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="editEmail" class="form-label">Email</label>
+                                <input type="email" class="form-control" id="editEmail" name="email" readonly>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="editPhone" class="form-label">Phone</label>
+                                <input type="tel" class="form-control" id="editPhone" name="phone">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="editRole" class="form-label">Role</label>
+                                <select class="form-control" id="editRole" name="role">
+                                    <option value="USER">User</option>
+                                    <option value="MANAGER">Manager</option>
+                                    <option value="ADMIN">Admin</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="editAccountStatus" class="form-label">Account Status</label>
+                                <select class="form-control" id="editAccountStatus" name="accountStatus">
+                                    <option value="PENDING">Pending</option>
+                                    <option value="ACTIVE">Active</option>
+                                    <option value="SUSPENDED">Suspended</option>
+                                    <option value="INACTIVE">Inactive</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Admin Status</label>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="editIsAdmin" name="isAdmin">
+                                    <label class="form-check-label" for="editIsAdmin">
+                                        Grant Administrator Privileges
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="editAddress" class="form-label">Address</label>
+                        <textarea class="form-control" id="editAddress" name="address" rows="3"></textarea>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="editCreditLimit" class="form-label">Credit Limit</label>
+                        <input type="number" class="form-control" id="editCreditLimit" name="creditLimit" min="0" max="10000" step="0.01" placeholder="0.00">
+                        <small class="form-text text-muted">Maximum amount the user can spend on book purchases (0 - 10,000)</small>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="editNewsletter" name="newsletter">
+                                <label class="form-check-label" for="editNewsletter">
+                                    Newsletter Subscription
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="editPromotions" name="promotions">
+                                <label class="form-check-label" for="editPromotions">
+                                    Promotional Offers
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="saveUser()">Save Changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Reset Password Modal -->
+<div class="modal fade" id="resetPasswordModal" tabindex="-1" aria-labelledby="resetPasswordModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="resetPasswordModalLabel">Reset User Password</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="resetPasswordForm">
+                    <input type="hidden" id="resetUserId" name="userId">
+                    
+                    <div class="mb-3">
+                        <label for="resetUserEmail" class="form-label">User Email</label>
+                        <input type="email" class="form-control" id="resetUserEmail" readonly>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="newPasswordAdmin" class="form-label">New Password</label>
+                        <input type="password" class="form-control" id="newPasswordAdmin" name="newPassword" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="confirmPasswordAdmin" class="form-label">Confirm New Password</label>
+                        <input type="password" class="form-control" id="confirmPasswordAdmin" name="confirmPassword" required>
+                    </div>
+                    
+                    <div class="alert alert-warning">
+                        <strong>Warning:</strong> This will immediately change the user's password. The user will need to use the new password to log in.
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-warning" onclick="resetPassword()">Reset Password</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add/Edit Book Modal -->
+<div class="modal fade" id="bookModal" tabindex="-1" aria-labelledby="bookModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="bookModalLabel">Add New Book</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="bookForm">
+                    <input type="hidden" id="bookId" name="bookId">
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="bookTitle" class="form-label">Title</label>
+                                <input type="text" class="form-control" id="bookTitle" name="title" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="bookAuthor" class="form-label">Author</label>
+                                <input type="text" class="form-control" id="bookAuthor" name="author" required>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="bookIsbn" class="form-label">ISBN</label>
+                                <input type="text" class="form-control" id="bookIsbn" name="isbn">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="bookCategory" class="form-label">Category</label>
+                                <select class="form-control" id="bookCategory" name="category">
+                                    <option value="Technology">Technology</option>
+                                    <option value="Security">Security</option>
+                                    <option value="Science">Science</option>
+                                    <option value="Business">Business</option>
+                                    <option value="Fiction">Fiction</option>
+                                    <option value="Non-Fiction">Non-Fiction</option>
+                                    <option value="Education">Education</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="bookPrice" class="form-label">Price ($)</label>
+                                <input type="number" class="form-control" id="bookPrice" name="price" min="0" step="0.01" required>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="bookStock" class="form-label">Stock</label>
+                                <input type="number" class="form-control" id="bookStock" name="stock" min="0" required>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="bookRating" class="form-label">Rating</label>
+                                <input type="number" class="form-control" id="bookRating" name="rating" min="0" max="5" step="0.1">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="bookPublisher" class="form-label">Publisher</label>
+                                <input type="text" class="form-control" id="bookPublisher" name="publisher">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="bookPublishDate" class="form-label">Publish Date</label>
+                                <input type="date" class="form-control" id="bookPublishDate" name="publishDate">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="bookDescription" class="form-label">Description</label>
+                        <textarea class="form-control" id="bookDescription" name="description" rows="3"></textarea>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="bookImageUrl" class="form-label">Image URL</label>
+                        <input type="url" class="form-control" id="bookImageUrl" name="imageUrl" placeholder="https://example.com/book-cover.jpg">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="saveBook()">Save Book</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Book Confirmation Modal -->
+<div class="modal fade" id="deleteBookModal" tabindex="-1" aria-labelledby="deleteBookModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteBookModalLabel">Delete Book</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete this book?</p>
+                <div class="alert alert-warning">
+                    <strong>Warning:</strong> This action cannot be undone. The book will be permanently removed from the system.
+                </div>
+                <input type="hidden" id="deleteBookId">
+                <p><strong>Book:</strong> <span id="deleteBookTitle"></span></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" onclick="confirmDeleteBook()">Delete Book</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function() {
+        const authToken = localStorage.getItem("authToken");
+        
+        if (!authToken) {
+            window.location.href = "/login";
+            return;
+        }
+
+        // Check if user is admin
+        checkAdminAccess();
+        
+        // Load users on page load
+        loadUsers();
+    });
+
+    function checkAdminAccess() {
+        const authToken = localStorage.getItem("authToken");
+        
+        $.ajax({
+            url: '/api/users',
+            type: 'GET',
+            headers: {
+                'Authorization': 'Bearer ' + authToken
+            },
+            success: function(response) {
+                const currentUser = response[0];
+                if (!currentUser.admin) {
+                    showError('Access denied. Administrator privileges required.');
+                    setTimeout(() => {
+                        window.location.href = "/";
+                    }, 2000);
+                }
+            },
+            error: function(xhr) {
+                window.location.href = "/login";
+            }
+        });
+    }
+
+    function loadUsers() {
+        const authToken = localStorage.getItem("authToken");
+        
+        $.ajax({
+            url: '/api/admin/users',
+            type: 'GET',
+            headers: {
+                'Authorization': 'Bearer ' + authToken
+            },
+            success: function(users) {
+                displayUsers(users);
+            },
+            error: function(xhr) {
+                const msg = xhr.responseJSON?.error || 'Failed to load users';
+                showError(msg);
+            }
+        });
+    }
+
+    function displayUsers(users) {
+        const tbody = $('#usersTableBody');
+        tbody.empty();
+        
+        users.forEach(user => {
+            const row = `
+                <tr>
+                    <td><code>${user.id}</code></td>
+                    <td>${user.name}</td>
+                    <td>${user.email}</td>
+                    <td><span class="badge bg-secondary">${user.role}</span></td>
+                    <td><span class="badge bg-${user.accountStatus === 'ACTIVE' ? 'success' : 'warning'}">${user.accountStatus}</span></td>
+                    <td>${user.admin ? '<span class="badge bg-danger">Admin</span>' : '<span class="badge bg-light text-dark">User</span>'}</td>
+                    <td>$${user.creditLimit}</td>
+                    <td>
+                        <button class="btn btn-sm btn-primary" onclick="editUser('${user.id}')">Edit</button>
+                        <button class="btn btn-sm btn-warning" onclick="resetUserPassword('${user.id}', '${user.email}')">Reset Password</button>
+                        <button class="btn btn-sm btn-danger" onclick="deleteUser('${user.id}', '${user.email}')">Delete</button>
+                    </td>
+                </tr>
+            `;
+            tbody.append(row);
+        });
+    }
+
+    function editUser(userId) {
+        const authToken = localStorage.getItem("authToken");
+        
+        // Find user data from the table
+        const users = [];
+        $('#usersTableBody tr').each(function() {
+            const cells = $(this).find('td');
+            if (cells.length > 1) {
+                const userIdFromTable = cells.eq(0).find('code').text();
+                if (userIdFromTable === userId) {
+                    // Get user data from API to populate form
+                    $.ajax({
+                        url: '/api/admin/users',
+                        type: 'GET',
+                        headers: {
+                            'Authorization': 'Bearer ' + authToken
+                        },
+                        success: function(users) {
+                            const user = users.find(u => u.id === userId);
+                            if (user) {
+                                populateEditForm(user);
+                                $('#editUserModal').modal('show');
+                            }
+                        }
+                    });
+                }
+            }
+        });
+    }
+
+    function populateEditForm(user) {
+        $('#editUserId').val(user.id);
+        $('#editName').val(user.name);
+        $('#editEmail').val(user.email);
+        $('#editPhone').val(user.phone);
+        $('#editRole').val(user.role);
+        $('#editAccountStatus').val(user.accountStatus);
+        $('#editIsAdmin').prop('checked', user.admin);
+        $('#editAddress').val(user.address);
+        $('#editCreditLimit').val(user.creditLimit);
+        $('#editNewsletter').prop('checked', user.newsletter);
+        $('#editPromotions').prop('checked', user.promotions);
+    }
+
+    function saveUser() {
+        const authToken = localStorage.getItem("authToken");
+        const userId = $('#editUserId').val();
+        
+        // Validate credit limit
+        const creditLimit = parseFloat($('#editCreditLimit').val()) || 0;
+        if (creditLimit < 0 || creditLimit > 10000) {
+            showError('Credit limit must be between 0 and 10,000');
+            return;
+        }
+        
+        const userData = {
+            name: $('#editName').val(),
+            phone: $('#editPhone').val(),
+            role: $('#editRole').val(),
+            accountStatus: $('#editAccountStatus').val(),
+            isAdmin: $('#editIsAdmin').is(':checked'),
+            address: $('#editAddress').val(),
+            creditLimit: creditLimit,
+            newsletter: $('#editNewsletter').is(':checked'),
+            promotions: $('#editPromotions').is(':checked')
+        };
+
+        $.ajax({
+            url: `/api/admin/users/${userId}`,
+            type: 'POST',
+            headers: {
+                'Authorization': 'Bearer ' + authToken,
+                'Content-Type': 'application/json'
+            },
+            data: JSON.stringify(userData),
+            success: function(response) {
+                $('#editUserModal').modal('hide');
+                showSuccess('User updated successfully!');
+                loadUsers();
+            },
+            error: function(xhr) {
+                const msg = xhr.responseJSON?.error || 'Failed to update user';
+                showError(msg);
+            }
+        });
+    }
+
+    function resetUserPassword(userId, email) {
+        $('#resetUserId').val(userId);
+        $('#resetUserEmail').val(email);
+        $('#newPasswordAdmin').val('');
+        $('#confirmPasswordAdmin').val('');
+        $('#resetPasswordModal').modal('show');
+    }
+
+    function resetPassword() {
+        const authToken = localStorage.getItem("authToken");
+        const userId = $('#resetUserId').val();
+        const newPassword = $('#newPasswordAdmin').val();
+        const confirmPassword = $('#confirmPasswordAdmin').val();
+        
+        if (newPassword !== confirmPassword) {
+            showError('Passwords do not match');
+            return;
+        }
+        
+        if (newPassword.length < 6) {
+            showError('Password must be at least 6 characters');
+            return;
+        }
+
+        $.ajax({
+            url: `/api/admin/users/${userId}/reset-password`,
+            type: 'POST',
+            headers: {
+                'Authorization': 'Bearer ' + authToken,
+                'Content-Type': 'application/json'
+            },
+            data: JSON.stringify({ newPassword: newPassword }),
+            success: function(response) {
+                $('#resetPasswordModal').modal('hide');
+                showSuccess('Password reset successfully!');
+            },
+            error: function(xhr) {
+                const msg = xhr.responseJSON?.error || 'Failed to reset password';
+                showError(msg);
+            }
+        });
+    }
+
+    function deleteUser(userId, email) {
+        if (!confirm(`Are you sure you want to delete user: ${email}?\n\nThis action cannot be undone.`)) {
+            return;
+        }
+        
+        const authToken = localStorage.getItem("authToken");
+
+        $.ajax({
+            url: `/api/admin/users/${userId}`,
+            type: 'DELETE',
+            headers: {
+                'Authorization': 'Bearer ' + authToken
+            },
+            success: function(response) {
+                showSuccess('User deleted successfully!');
+                loadUsers();
+            },
+            error: function(xhr) {
+                const msg = xhr.responseJSON?.error || 'Failed to delete user';
+                showError(msg);
+            }
+        });
+    }
+
+    function exportUsers() {
+        showSuccess('Export functionality would be implemented here');
+    }
+
+    function showBulkActions() {
+        showSuccess('Bulk actions functionality would be implemented here');
+    }
+
+    function showError(message) {
+        $('#errorText').text(message);
+        $('#errorDiv').show();
+        $('#successDiv').hide();
+        $('html, body').animate({
+            scrollTop: $('#errorDiv').offset().top - 100
+        }, 500);
+    }
+
+    function showSuccess(message) {
+        $('#successText').text(message);
+        $('#successDiv').show();
+        $('#errorDiv').hide();
+        $('html, body').animate({
+            scrollTop: $('#successDiv').offset().top - 100
+        }, 500);
+    }
+
+    // Book Management Functions
+    function loadBooks() {
+        const authToken = localStorage.getItem("authToken");
+        
+        $.ajax({
+            url: '/api/admin/books',
+            type: 'GET',
+            headers: {
+                'Authorization': 'Bearer ' + authToken
+            },
+            success: function(books) {
+                $('#booksTableBody').empty();
+                
+                if (books.length === 0) {
+                    $('#booksTableBody').append('<tr><td colspan="8" class="text-center">No books found</td></tr>');
+                    return;
+                }
+                
+                books.forEach(function(book) {
+                    const row = `
+                        <tr>
+                            <td>${book.id}</td>
+                            <td>${book.title || ''}</td>
+                            <td>${book.author || ''}</td>
+                            <td>${book.category || ''}</td>
+                            <td>$${book.price ? book.price.toFixed(2) : '0.00'}</td>
+                            <td>${book.stock || 0}</td>
+                            <td>${book.rating ? book.rating.toFixed(1) : 'N/A'}</td>
+                            <td>
+                                <button class="btn btn-sm btn-primary" onclick="editBook('${book.id}')">Edit</button>
+                                <button class="btn btn-sm btn-danger" onclick="deleteBook('${book.id}', '${book.title}')">Delete</button>
+                            </td>
+                        </tr>
+                    `;
+                    $('#booksTableBody').append(row);
+                });
+            },
+            error: function(xhr) {
+                showBookError('Failed to load books: ' + (xhr.responseJSON?.error || 'Unknown error'));
+            }
+        });
+    }
+
+    function showAddBookModal() {
+        $('#bookModalLabel').text('Add New Book');
+        $('#bookForm')[0].reset();
+        $('#bookId').val('');
+        $('#bookModal').modal('show');
+    }
+
+    function editBook(bookId) {
+        const authToken = localStorage.getItem("authToken");
+        
+        $.ajax({
+            url: `/api/admin/books/${bookId}`,
+            type: 'GET',
+            headers: {
+                'Authorization': 'Bearer ' + authToken
+            },
+            success: function(book) {
+                $('#bookModalLabel').text('Edit Book');
+                $('#bookId').val(book.id);
+                $('#bookTitle').val(book.title);
+                $('#bookAuthor').val(book.author);
+                $('#bookIsbn').val(book.isbn);
+                $('#bookCategory').val(book.category);
+                $('#bookPrice').val(book.price);
+                $('#bookStock').val(book.stock);
+                $('#bookRating').val(book.rating);
+                $('#bookPublisher').val(book.publisher);
+                $('#bookPublishDate').val(book.publishDate);
+                $('#bookDescription').val(book.description);
+                $('#bookImageUrl').val(book.imageUrl);
+                $('#bookModal').modal('show');
+            },
+            error: function(xhr) {
+                showBookError('Failed to load book details: ' + (xhr.responseJSON?.error || 'Unknown error'));
+            }
+        });
+    }
+
+    function saveBook() {
+        const authToken = localStorage.getItem("authToken");
+        const bookId = $('#bookId').val();
+        const isEdit = bookId !== '';
+        
+        const bookData = {
+            title: $('#bookTitle').val(),
+            author: $('#bookAuthor').val(),
+            isbn: $('#bookIsbn').val(),
+            category: $('#bookCategory').val(),
+            price: parseFloat($('#bookPrice').val()),
+            stock: parseInt($('#bookStock').val()),
+            rating: parseFloat($('#bookRating').val()) || null,
+            publisher: $('#bookPublisher').val(),
+            publishDate: $('#bookPublishDate').val(),
+            description: $('#bookDescription').val(),
+            imageUrl: $('#bookImageUrl').val()
+        };
+
+        const url = isEdit ? `/api/admin/books/${bookId}` : '/api/admin/books';
+        const method = isEdit ? 'PUT' : 'POST';
+
+        $.ajax({
+            url: url,
+            type: method,
+            headers: {
+                'Authorization': 'Bearer ' + authToken,
+                'Content-Type': 'application/json'
+            },
+            data: JSON.stringify(bookData),
+            success: function(response) {
+                $('#bookModal').modal('hide');
+                showBookSuccess(isEdit ? 'Book updated successfully!' : 'Book added successfully!');
+                loadBooks();
+            },
+            error: function(xhr) {
+                const msg = xhr.responseJSON?.error || 'Failed to save book';
+                showBookError(msg);
+            }
+        });
+    }
+
+    function deleteBook(bookId, bookTitle) {
+        $('#deleteBookId').val(bookId);
+        $('#deleteBookTitle').text(bookTitle);
+        $('#deleteBookModal').modal('show');
+    }
+
+    function confirmDeleteBook() {
+        const authToken = localStorage.getItem("authToken");
+        const bookId = $('#deleteBookId').val();
+
+        $.ajax({
+            url: `/api/admin/books/${bookId}`,
+            type: 'DELETE',
+            headers: {
+                'Authorization': 'Bearer ' + authToken
+            },
+            success: function(response) {
+                $('#deleteBookModal').modal('hide');
+                showBookSuccess('Book deleted successfully!');
+                loadBooks();
+            },
+            error: function(xhr) {
+                const msg = xhr.responseJSON?.error || 'Failed to delete book';
+                showBookError(msg);
+            }
+        });
+    }
+
+    function exportBooks() {
+        showBookSuccess('Export functionality would be implemented here');
+    }
+
+    function showBookError(message) {
+        $('#bookErrorText').text(message);
+        $('#bookErrorDiv').show();
+        $('#bookSuccessDiv').hide();
+    }
+
+    function showBookSuccess(message) {
+        $('#bookSuccessText').text(message);
+        $('#bookSuccessDiv').show();
+        $('#bookErrorDiv').hide();
+    }
+
+    // Load books when the books tab is activated
+    $('#books-tab').on('click', function() {
+        loadBooks();
+    });
+</script>
+
+<!-- Include navigation script fragment -->
+<div th:replace="~{fragments/topnav :: topnav-script}"></div>
+</body>
+</html>

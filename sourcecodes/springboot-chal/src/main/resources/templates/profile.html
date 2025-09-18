@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>User Profile - SecChamp Library</title>
+    <link rel="stylesheet" th:href="@{/css/bootstrap.min.css}">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <script th:src="@{/js/jquery.min.js}"></script>
+    <script th:src="@{/js/bootstrap.bundle.min.js}"></script>
+</head>
+<body>
+
+<!-- Include navigation fragment -->
+<div th:replace="~{fragments/topnav :: topnav}"></div>
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <h1>User Profile</h1>
+            <p class="text-muted">Manage your account information and settings</p>
+
+            <!-- Profile Information Card -->
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Personal Information</h5>
+                </div>
+                <div class="card-body">
+                    <form id="profileForm">
+                        <!-- Hidden field for user ID - VULNERABILITY: This can be tampered with -->
+                        <input type="hidden" id="userId" name="userId" value="">
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="name" class="form-label">Full Name</label>
+                                    <input type="text" class="form-control" id="name" name="name" value="" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="email" class="form-label">Email Address</label>
+                                    <input type="email" class="form-control" id="email" name="email" value="" readonly>
+                                    <small class="text-muted">Email cannot be changed</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="phone" class="form-label">Phone Number</label>
+                                    <input type="tel" class="form-control" id="phone" name="phone" value="">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="role" class="form-label">Role</label>
+                                    <input type="text" class="form-control" id="role" name="role" value="" readonly>
+                                    <small class="text-muted">Role is managed by administrators</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="address" class="form-label">Address</label>
+                            <textarea class="form-control" id="address" name="address" rows="3"></textarea>
+                        </div>
+
+                        <!-- Account Status Info (Read-only) -->
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="accountStatus" class="form-label">Account Status</label>
+                                    <input type="text" class="form-control" id="accountStatus" value="" readonly>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="creditLimit" class="form-label">Credit Limit</label>
+                                    <input type="text" class="form-control" id="creditLimit" value="" readonly>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Preferences -->
+                        <div class="mb-3">
+                            <label class="form-label">Communication Preferences</label>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="newsletter" name="newsletter">
+                                <label class="form-check-label" for="newsletter">
+                                    Receive newsletter updates
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="promotions" name="promotions">
+                                <label class="form-check-label" for="promotions">
+                                    Receive promotional offers
+                                </label>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">Update Profile</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Password Change Card -->
+            <div class="card mb-4">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0">Change Password</h5>
+                </div>
+                <div class="card-body">
+                    <form id="passwordForm">
+                        <!-- Hidden field for user ID - VULNERABILITY: This can be tampered with -->
+                        <input type="hidden" id="passwordUserId" name="userId" value="">
+                        
+                        <div class="mb-3">
+                            <label for="currentPassword" class="form-label">Current Password</label>
+                            <input type="password" class="form-control" id="currentPassword" name="currentPassword" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="newPassword" class="form-label">New Password</label>
+                            <input type="password" class="form-control" id="newPassword" name="newPassword" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="confirmPassword" class="form-label">Confirm New Password</label>
+                            <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" required>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-warning">Change Password</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Admin Information (if applicable) -->
+            <div class="card mb-4 admin-info" style="display: none;">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0">Administrator Information</h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>Admin Status:</strong> <span class="badge bg-danger">Administrator</span></p>
+                    <p class="text-muted">You have administrative privileges in this system.</p>
+                </div>
+            </div>
+
+            <!-- Security Notice -->
+            <div class="alert alert-info">
+                <h6>Security Notice</h6>
+                <p class="mb-0">For your security, always log out when using shared computers. If you notice any unauthorized activity, please contact support immediately.</p>
+            </div>           
+
+            <!-- Error and Success Messages -->
+            <div class="alert alert-danger mt-3" id="errorDiv" style="display: none;">
+                <p id="errorText"></p>
+            </div>
+
+            <div class="alert alert-success mt-3" id="successDiv" style="display: none;">
+                <p id="successText"></p>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function() {
+        const authToken = localStorage.getItem("authToken");
+        
+        if (!authToken) {
+            window.location.href = "/login";
+            return;
+        }
+
+        // Load user profile data
+        loadUserProfile();
+
+        function loadUserProfile() {
+            $.ajax({
+                url: '/api/profile',
+                type: 'GET',
+                headers: {
+                    'Authorization': 'Bearer ' + authToken
+                },
+                success: function(user) {
+                    // Populate form fields
+                    $('#userId').val(user.id);
+                    $('#passwordUserId').val(user.id);
+                    $('#name').val(user.name);
+                    $('#email').val(user.email);
+                    $('#phone').val(user.phone);
+                    $('#role').val(user.role);
+                    $('#address').val(user.address);
+                    $('#accountStatus').val(user.accountStatus);
+                    $('#creditLimit').val('$' + user.creditLimit);
+                    $('#newsletter').prop('checked', user.newsletter);
+                    $('#promotions').prop('checked', user.promotions);
+                    
+                    // Show admin info if user is admin
+                    if (user.admin) {
+                        $('.admin-info').show();
+                    }
+                    
+                    // Update debug info
+                    $('.debug-user-id').text(user.id);
+                },
+                error: function(xhr) {
+                    if (xhr.status === 401 || xhr.status === 403) {
+                        localStorage.removeItem("authToken");
+                        window.location.href = "/login";
+                    } else {
+                        showError('Failed to load profile data');
+                    }
+                }
+            });
+        }
+
+        // Profile update form
+        $('#profileForm').on('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = {
+                userId: $('#userId').val(),  // VULNERABILITY: This can be tampered with
+                name: $('#name').val(),
+                phone: $('#phone').val(),
+                address: $('#address').val(),
+                newsletter: $('#newsletter').is(':checked'),
+                promotions: $('#promotions').is(':checked')
+            };
+
+            $.ajax({
+                url: '/api/profile/update',
+                type: 'POST',
+                headers: {
+                    'Authorization': 'Bearer ' + authToken,
+                    'Content-Type': 'application/json'
+                },
+                data: JSON.stringify(formData),
+                success: function(response) {
+                    showSuccess('Profile updated successfully!');
+                },
+                error: function(xhr) {
+                    const msg = xhr.responseJSON?.error || 'Failed to update profile';
+                    showError(msg);
+                }
+            });
+        });
+
+        // Password change form
+        $('#passwordForm').on('submit', function(e) {
+            e.preventDefault();
+            
+            const newPassword = $('#newPassword').val();
+            const confirmPassword = $('#confirmPassword').val();
+            
+            if (newPassword !== confirmPassword) {
+                showError('New passwords do not match');
+                return;
+            }
+            
+            const passwordData = {
+                userId: $('#passwordUserId').val(),  // VULNERABILITY: This can be tampered with
+                currentPassword: $('#currentPassword').val(),
+                newPassword: newPassword
+            };
+
+            $.ajax({
+                url: '/api/profile/change-password',
+                type: 'POST',
+                headers: {
+                    'Authorization': 'Bearer ' + authToken,
+                    'Content-Type': 'application/json'
+                },
+                data: JSON.stringify(passwordData),
+                success: function(response) {
+                    showSuccess('Password changed successfully!');
+                    $('#passwordForm')[0].reset();
+                },
+                error: function(xhr) {
+                    const msg = xhr.responseJSON?.error || 'Failed to change password';
+                    showError(msg);
+                }
+            });
+        });
+
+        function showError(message) {
+            $('#errorText').text(message);
+            $('#errorDiv').show();
+            $('#successDiv').hide();
+            $('html, body').animate({
+                scrollTop: $('#errorDiv').offset().top - 100
+            }, 500);
+        }
+
+        function showSuccess(message) {
+            $('#successText').text(message);
+            $('#successDiv').show();
+            $('#errorDiv').hide();
+            $('html, body').animate({
+                scrollTop: $('#successDiv').offset().top - 100
+            }, 500);
+        }
+    });
+</script>
+
+<!-- Include navigation script fragment -->
+<div th:replace="~{fragments/topnav :: topnav-script}"></div>
+</body>
+</html>

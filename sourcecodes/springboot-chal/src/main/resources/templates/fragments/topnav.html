@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <!-- Favicon Fragment -->
+    <div th:fragment="favicon">
+        <link rel="icon" type="image/x-icon" th:href="@{/favicon.ico}">
+        <link rel="icon" type="image/svg+xml" th:href="@{/favicon.svg}">
+    </div>
+    
+    <!-- This fragment contains only the navigation bar -->
+    <style>
+        .nav-link.active {
+            background-color: rgba(255, 255, 255, 0.2) !important;
+            border-radius: 0.375rem;
+            font-weight: 600;
+        }
+        
+        .navbar-nav .d-flex {
+            gap: 0.5rem;
+        }
+        
+        #navbarContent .d-flex .nav-link {
+            white-space: nowrap;
+            padding: 0.5rem 1rem;
+        }
+        
+        .cart-icon {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .cart-count {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background-color: #dc3545;
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 20px;
+        }
+        
+        .cart-count:empty {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation Fragment -->
+    <nav th:fragment="topnav" class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="/">SecChamp Library</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" 
+                    aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <div class="navbar-nav ms-auto d-flex align-items-center" id="navbarContent">
+                    <!-- Navigation links will be injected here by JS -->
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Navigation JavaScript Fragment -->
+    <script th:fragment="topnav-script">
+        $(document).ready(function() {
+            // Highlight current page in navigation
+            function highlightCurrentPage() {
+                const currentPath = window.location.pathname;
+                const pageMap = {
+                    '/': 'home',
+                    '/home': 'home',
+                    '/books': 'books',
+                    '/advanced_search': 'advanced_search',
+                    '/users': 'users',
+                    '/cart': 'cart',
+                    '/help': 'help',
+                    '/login': 'login',
+                    '/register': 'register',
+                    '/admin': 'admin'
+                };
+                
+                const currentPage = pageMap[currentPath] || 'home';
+                
+                // Remove active class from all nav links
+                $('.nav-link').removeClass('active');
+                
+                // Add active class to current page link
+                $(`.nav-link[data-page="${currentPage}"]`).addClass('active');
+            }
+            
+            // Render navigation links based on authentication
+            function renderNav(isLoggedIn, userName, isAdmin) {
+                let navHtml = '';
+                if (isLoggedIn) {
+                    navHtml = `
+                        <a class="nav-link" href="/" data-page="home">Home</a>
+                        <a class="nav-link" href="/books" data-page="books">Browse Books</a>
+                        <a class="nav-link" href="/advanced_search" data-page="advanced_search">Advanced Search</a>
+                        <a class="nav-link" href="/users" data-page="users">My Library</a>
+                        <a class="nav-link cart-icon" href="/cart" data-page="cart" title="Shopping Cart">
+                            🛒 <span class="cart-count" id="cartCount"></span>
+                        </a>
+                        <a class="nav-link" href="/help" data-page="help">Help</a>`;
+                    
+                    if (isAdmin) {
+                        navHtml += `<a class="nav-link" href="/admin" data-page="admin">Admin Panel</a>`;
+                    }
+                    
+                    navHtml += `<span class="navbar-text me-2"> | Welcome,</span>
+                        <a class="nav-link" href="/profile" id="userProfile">${userName || 'User'}</a>
+                        <button id="logoutBtn" class="btn btn-outline-light btn-sm">Logout</button>
+                    `;
+                } else {
+                    navHtml = `
+                        <a class="nav-link" href="/" data-page="home">Home</a>
+                        <a class="nav-link" href="/books" data-page="books">Browse Books</a>
+                        <a class="nav-link" href="/advanced_search" data-page="advanced_search">Advanced Search</a>
+                        <a class="nav-link" href="/help" data-page="help">Help</a>
+                        <a class="nav-link" href="/login" data-page="login">Login</a>
+                        <a class="nav-link" href="/register" data-page="register">Register</a>
+                    `;
+                }
+                $("#navbarContent").html(navHtml);
+            }
+            
+            // Global logout function that can be called from anywhere
+            window.performLogout = function() {
+                // Clear all authentication data
+                localStorage.removeItem("authToken");
+                localStorage.removeItem("userId");
+                localStorage.removeItem("userEmail");
+                localStorage.removeItem("userName");
+                
+                // Clear any session storage as well
+                sessionStorage.clear();
+                
+                // Update navigation immediately
+                renderNav(false);
+                highlightCurrentPage();
+                
+                // Redirect to login page
+                window.location.href = "/login";
+            };
+            
+            // Global function to update cart count
+            window.updateCartCount = function() {
+                const authToken = localStorage.getItem("authToken");
+                if (!authToken) {
+                    $('#cartCount').text('').hide();
+                    return;
+                }
+                
+                fetch('/api/cart', {
+                    headers: {
+                        'Authorization': 'Bearer ' + authToken
+                    }
+                })
+                .then(response => {
+                    if (response.ok) {
+                        return response.json();
+                    }
+                    throw new Error('Failed to fetch cart');
+                })
+                .then(data => {
+                    const totalItems = data.items ? data.items.reduce((sum, item) => sum + item.quantity, 0) : 0;
+                    if (totalItems > 0) {
+                        $('#cartCount').text(totalItems).show();
+                    } else {
+                        $('#cartCount').text('').hide();
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching cart count:', error);
+                    $('#cartCount').text('').hide();
+                });
+            };
+
+            const authToken = localStorage.getItem("authToken");
+            if (authToken) {
+                fetch('/api/users', {
+                    headers: {
+                        'Authorization': 'Bearer ' + authToken
+                    }
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Authentication failed');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    const currentUser = data[0];
+                    renderNav(true, currentUser.name, currentUser.admin);
+                    highlightCurrentPage();
+                    // Update cart count after navigation is rendered
+                    setTimeout(updateCartCount, 100);
+                })
+                .catch(error => {
+                    console.error('Error fetching user data:', error);
+                    localStorage.removeItem("authToken");
+                    renderNav(false);
+                    highlightCurrentPage();
+                });
+            } else {
+                renderNav(false);
+                highlightCurrentPage();
+            }
+            
+            // Handle logout using event delegation for dynamically created button
+            $(document).on('click', '#logoutBtn', function() {
+                // Clear all authentication data
+                localStorage.removeItem("authToken");
+                localStorage.removeItem("userId");
+                localStorage.removeItem("userEmail");
+                localStorage.removeItem("userName");
+                
+                // Clear any session storage as well
+                sessionStorage.clear();
+                
+                // Update navigation immediately
+                renderNav(false);
+                highlightCurrentPage();
+                
+                // Redirect to login page
+                window.location.href = "/login";
+            });
+        });
+    </script>
+</body>
+</html>

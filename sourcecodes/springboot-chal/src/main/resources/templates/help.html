@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Help - SecChamp Library</title>
+    <link th:href="@{/css/bootstrap.min.css}" rel="stylesheet">
+    <link th:href="@{/css/style.css}" rel="stylesheet">
+</head>
+<body>
+    <!-- Include navigation fragment -->
+    <div th:replace="~{fragments/topnav :: topnav}"></div>
+
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-12">
+                <h1>Help & Support</h1>
+                <p class="lead">Welcome to the SecChamp Library Help Center</p>
+            </div>
+        </div>
+
+        <div class="row mt-4">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Getting Started</h5>
+                    </div>
+                    <div class="card-body">
+                        <ul>
+                            <li>Browse our extensive book collection</li>
+                            <li>Use advanced search to find specific books</li>
+                            <li>Check book availability and ratings</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Account Management</h5>
+                    </div>
+                    <div class="card-body">
+                        <ul>
+                            <li>Update your profile information</li>
+                            <li>Change your password securely</li>
+                            <li>View your borrowing history</li>
+                            <li>Manage notification preferences</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mt-4">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Frequently Asked Questions</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="accordion" id="faqAccordion">
+                            <div class="accordion-item">
+                                <h2 class="accordion-header" id="faq1">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" 
+                                            data-bs-target="#collapse1" aria-expanded="false" aria-controls="collapse1">
+                                        How do I reset my password?
+                                    </button>
+                                </h2>
+                                <div id="collapse1" class="accordion-collapse collapse" aria-labelledby="faq1" 
+                                     data-bs-parent="#faqAccordion">
+                                    <div class="accordion-body">
+                                        You can reset your password using the "Forgot Password" link on the login page. 
+                                        You'll need to provide your phone number for verification.
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="accordion-item">
+                                <h2 class="accordion-header" id="faq2">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" 
+                                            data-bs-target="#collapse2" aria-expanded="false" aria-controls="collapse2">
+                                        How long can I borrow books?
+                                    </button>
+                                </h2>
+                                <div id="collapse2" class="accordion-collapse collapse" aria-labelledby="faq2" 
+                                     data-bs-parent="#faqAccordion">
+                                    <div class="accordion-body">
+                                        Books can be borrowed for up to 14 days. You can renew them once if no one else 
+                                        has placed a hold on the book.
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="accordion-item">
+                                <h2 class="accordion-header" id="faq3">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" 
+                                            data-bs-target="#collapse3" aria-expanded="false" aria-controls="collapse3">
+                                        Can I suggest new books for the library?
+                                    </button>
+                                </h2>
+                                <div id="collapse3" class="accordion-collapse collapse" aria-labelledby="faq3" 
+                                     data-bs-parent="#faqAccordion">
+                                    <div class="accordion-body">
+                                        Yes! We welcome book suggestions. Please contact our librarians with your 
+                                        recommendations and we'll consider them for our collection.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Contact Information</h5>
+                    </div>
+                    <div class="card-body">
+                        <p><strong>Library Hours:</strong></p>
+                        <ul>
+                            <li>Monday - Friday: 8:00 AM - 8:00 PM</li>
+                            <li>Saturday: 9:00 AM - 6:00 PM</li>
+                            <li>Sunday: 12:00 PM - 5:00 PM</li>
+                        </ul>
+                        
+                        <p><strong>Contact Us:</strong></p>
+                        <ul>
+                            <li>Phone: (555) 123-4567</li>
+                            <li>Email: help@sechamp-library.com</li>
+                            <li>Address: 123 Knowledge Street, Learning City</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Technical Support</h5>
+                    </div>
+                    <div class="card-body">
+                        <p>If you're experiencing technical difficulties with the website or mobile app, please:</p>
+                        <ol>
+                            <li>Clear your browser cache and cookies</li>
+                            <li>Try using a different browser</li>
+                            <li>Check your internet connection</li>
+                            <li>If problems persist, contact our IT support team</li>
+                        </ol>
+                        <div class="alert alert-info mt-3">
+                            <strong>Note:</strong> For security reasons, we recommend using strong passwords and 
+                            logging out when you're finished using the system.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script th:src="@{/js/bootstrap.bundle.min.js}"></script>
+    <script th:src="@{/js/jquery.min.js}"></script>
+    <!-- Include navigation script fragment -->
+    <div th:replace="~{fragments/topnav :: topnav-script}"></div>
+</body>
+</html>

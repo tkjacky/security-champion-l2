@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Customer Registration - SecBooks</title>
+    <link rel="stylesheet" th:href="@{/css/bootstrap.min.css}">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <style>
+        .register-container {
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            background: white;
+        }
+        .register-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .logo {
+            font-size: 2.5rem;
+            color: #007bff;
+            margin-bottom: 10px;
+        }
+        .benefits-card {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+        .form-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+        }
+        .hidden-fields {
+            display: none;
+        }
+    </style>
+</head>
+<body class="bg-light">
+
+<!-- Include navigation fragment -->
+<div th:replace="~{fragments/topnav :: topnav}"></div>
+
+<div class="container">
+    <div class="register-container">
+        <div class="register-header">
+            <div class="logo">SecBooks</div>
+            <h2>Create Your Account</h2>
+            <p class="text-muted">Join thousands of book lovers</p>
+        </div>
+
+        <!-- Registration Form -->
+        <form id="registerForm">
+            <!-- Basic Information -->
+            <div class="form-section">
+                <h5 class="mb-3">Basic Information</h5>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="name" class="form-label">Full Name</label>
+                            <input type="text" class="form-control" id="name" name="name" required>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email Address</label>
+                            <input type="email" class="form-control" id="email" name="email" required>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="password" class="form-label">Password</label>
+                            <input type="password" class="form-control" id="password" name="password" required>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="confirmPassword" class="form-label">Confirm Password</label>
+                            <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" required>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Contact Information -->
+            <div class="form-section">
+                <h5 class="mb-3">Contact Information</h5>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="phone" class="form-label">Phone Number</label>
+                            <input type="tel" class="form-control" id="phone" name="phone">
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="address" class="form-label">Address</label>
+                            <input type="text" class="form-control" id="address" name="address">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mass Assignment Vulnerability - Hidden Admin Fields -->
+            <div class="form-section hidden-fields">
+                <h5 class="mb-3">Administrative Fields (Hidden)</h5>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="role" class="form-label">Role</label>
+                            <input type="text" class="form-control" id="role" name="role" value="USER">
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="isAdmin" class="form-label">Admin Status</label>
+                            <select class="form-control" id="isAdmin" name="isAdmin">
+                                <option value="false">False</option>
+                                <option value="true">True</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="accountStatus" class="form-label">Account Status</label>
+                            <input type="text" class="form-control" id="accountStatus" name="accountStatus" value="PENDING">
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="creditLimit" class="form-label">Credit Limit</label>
+                            <input type="number" class="form-control" id="creditLimit" name="creditLimit" value="20" min="0" max="10000">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Preferences -->
+            <div class="form-section">
+                <h5 class="mb-3">Preferences</h5>
+                <div class="mb-3">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="newsletter" name="newsletter" checked>
+                        <label class="form-check-label" for="newsletter">
+                            Subscribe to newsletter for latest book recommendations
+                        </label>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="promotions" name="promotions" checked>
+                        <label class="form-check-label" for="promotions">
+                            Receive promotional offers and discounts
+                        </label>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="terms" name="terms" required>
+                        <label class="form-check-label" for="terms">
+                            I agree to the <a href="/terms">Terms of Service</a> and <a href="/privacy">Privacy Policy</a>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-grid">
+                <button type="submit" class="btn btn-primary btn-lg">
+                    Create SecBooks Account
+                </button>
+            </div>
+        </form>
+
+        <!-- Error Messages -->
+        <div class="alert alert-danger mt-3" id="errorDiv" style="display: none;">
+            <p id="errorText"></p>
+        </div>
+
+        <!-- Success Messages -->
+        <div class="alert alert-success mt-3" id="successDiv" style="display: none;">
+            <p id="successText"></p>
+        </div>
+
+        <!-- Already have account -->
+        <div class="text-center mt-4">
+            <p class="mb-2">Already have an account?</p>
+            <a href="/login" class="btn btn-outline-primary">
+                Sign In
+            </a>
+        </div>
+
+        <!-- Member Benefits -->
+        <div class="benefits-card">
+            <h6>SecBooks Member Benefits:</h6>
+            <ul class="small mb-0">
+                <li>Access to exclusive book previews and early releases</li>
+                <li>Free shipping on orders over $25</li>
+                <li>Personalized book recommendations based on reading history</li>
+                <li>Member-only discounts and seasonal sales</li>
+                <li>Digital library access with thousands of e-books</li>
+                <li>Book reviews and community discussions</li>
+            </ul>
+        </div>
+
+        <!-- Security Note -->
+        <div class="text-center mt-3">
+            <small class="text-muted">
+                Your information is protected with industry-standard security
+            </small>
+        </div>
+    </div>
+</div>
+
+<footer class="bg-dark text-light mt-5 py-4">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-4">
+                <h5>SecBooks</h5>
+                <p>Your trusted online bookstore since 2020</p>
+            </div>
+            <div class="col-md-4">
+                <h5>Customer Support</h5>
+                <p>Phone: 1-800-SEC-BOOK<br>
+                   Email: support@secbooks.com<br>
+                   Live chat available 24/7</p>
+            </div>
+            <div class="col-md-4">
+                <h5>Quick Links</h5>
+                <a href="/help" class="text-light d-block">Help Center</a>
+                <a href="/shipping" class="text-light d-block">Shipping Info</a>
+                <a href="/returns" class="text-light d-block">Returns & Exchanges</a>
+                <a href="/privacy" class="text-light d-block">Privacy Policy</a>
+            </div>
+        </div>
+        <hr class="my-4">
+        <div class="text-center">
+            <p>&copy; 2024 SecBooks Online. All rights reserved. | Made with love for book lovers</p>
+        </div>
+    </div>
+</footer>
+
+<script th:src="@{/js/jquery.min.js}"></script>
+<script th:src="@{/js/bootstrap.bundle.min.js}"></script>
+<script>
+    // Check if user is already authenticated
+    function checkAuthStatus() {
+        const token = localStorage.getItem("authToken");
+        if (token) {
+            // Verify the token is still valid
+            fetch('/api/users', {
+                headers: {
+                    'Authorization': 'Bearer ' + token
+                }
+            })
+            .then(response => {
+                if (response.ok) {
+                    // User is already logged in, redirect to dashboard
+                    window.location.href = "/users";
+                }
+                // If token is invalid, we'll stay on register page
+            })
+            .catch(error => {
+                // Token is invalid, clear it
+                localStorage.removeItem("authToken");
+            });
+        }
+    }
+
+    // Check auth status when page loads
+    checkAuthStatus();
+
+    $('#registerForm').on('submit', function (e) {
+        e.preventDefault();
+        
+        // Clear previous messages
+        $('#errorDiv').hide();
+        $('#successDiv').hide();
+        
+        // Basic validation
+        const password = $('#password').val();
+        const confirmPassword = $('#confirmPassword').val();
+        
+        if (password !== confirmPassword) {
+            showError('Passwords do not match');
+            return;
+        }
+        
+        // Collect form data (including hidden fields - mass assignment vulnerability)
+        const formData = {};
+        $(this).serializeArray().forEach(function(item) {
+            if (item.name === 'newsletter' || item.name === 'promotions' || item.name === 'terms') {
+                formData[item.name] = true;
+            } else {
+                formData[item.name] = item.value;
+            }
+        });
+        
+        // Add unchecked checkboxes as false
+        if (!formData.newsletter) formData.newsletter = false;
+        if (!formData.promotions) formData.promotions = false;
+        if (!formData.terms) formData.terms = false;
+        
+        // Show loading state
+        const submitBtn = $(this).find('button[type="submit"]');
+        const originalText = submitBtn.html();
+        submitBtn.html('Creating Account...').prop('disabled', true);
+
+        $.ajax({
+            url: '/api/auth/register',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(formData),
+            success: function (response) {
+                // Clear any existing authentication token
+                localStorage.removeItem("authToken");
+                showSuccess('Account created successfully! You can now log in.');
+                setTimeout(() => {
+                    window.location.href = '/login?registered=true';
+                }, 2000);
+            },
+            error: function (xhr) {
+                const msg = xhr.responseJSON?.error || 'Registration failed. Please try again.';
+                showError(msg);
+                
+                // Reset button
+                submitBtn.html(originalText).prop('disabled', false);
+            }
+        });
+    });
+    
+    function showError(message) {
+        $('#errorText').text(message);
+        $('#errorDiv').show();
+        $('html, body').animate({
+            scrollTop: $('#errorDiv').offset().top - 100
+        }, 500);
+    }
+    
+    function showSuccess(message) {
+        $('#successText').text(message);
+        $('#successDiv').show();
+        $('html, body').animate({
+            scrollTop: $('#successDiv').offset().top - 100
+        }, 500);
+    }
+</script>
+<!-- Include navigation script fragment -->
+<div th:replace="~{fragments/topnav :: topnav-script}"></div>
+</body>
+</html>

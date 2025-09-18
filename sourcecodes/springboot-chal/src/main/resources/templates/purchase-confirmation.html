@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Purchase Confirmation - SecChamp Library</title>
+    <link rel="stylesheet" th:href="@{/css/bootstrap.min.css}">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <script th:src="@{/js/jquery.min.js}"></script>
+    <script th:src="@{/js/bootstrap.bundle.min.js}"></script>
+</head>
+<body>
+
+<!-- Include navigation fragment -->
+<div th:replace="~{fragments/topnav :: topnav}"></div>
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-warning text-dark">
+                    <h4 class="mb-0"><i class="fas fa-clock"></i> Purchase Confirmation</h4>
+                </div>
+                <div class="card-body">
+                    <div id="loadingMessage" class="text-center">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-2">Loading purchase details...</p>
+                    </div>
+
+                    <div id="confirmationContent" style="display: none;">
+                        <div class="alert alert-warning">
+                            <strong><i class="fas fa-exclamation-triangle"></i> Important:</strong> 
+                            You have <strong id="timeRemaining"></strong> to complete this purchase before your reservation expires.
+                        </div>
+
+                        <div class="row">
+                            <div class="col-12">
+                                <h3 id="bookTitle">Book Title</h3>
+                                <p class="text-muted">by <span id="bookAuthor">Author Name</span></p>
+                                
+                                <div class="purchase-details mt-4">
+                                    <div class="row mb-2">
+                                        <div class="col-6"><strong>Price:</strong></div>
+                                        <div class="col-6" id="bookPrice">$0.00</div>
+                                    </div>
+                                    <div class="row mb-2">
+                                        <div class="col-6"><strong>Your Credit Limit:</strong></div>
+                                        <div class="col-6" id="currentCredit">$0.00</div>
+                                    </div>
+                                    <div class="row mb-2">
+                                        <div class="col-6"><strong>After Purchase:</strong></div>
+                                        <div class="col-6" id="remainingCredit">$0.00</div>
+                                    </div>
+                                    <hr>
+                                    <div class="row">
+                                        <div class="col-6"><strong>Total:</strong></div>
+                                        <div class="col-6"><strong id="totalPrice">$0.00</strong></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mt-4 text-center">
+                            <button class="btn btn-success btn-lg me-3" id="confirmBtn" onclick="confirmPurchase()">
+                                <i class="fas fa-check"></i> Confirm Purchase
+                            </button>
+                            <button class="btn btn-secondary btn-lg" id="cancelBtn" onclick="cancelPurchase()">
+                                <i class="fas fa-times"></i> Cancel
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="errorContent" style="display: none;">
+                        <div class="alert alert-danger text-center">
+                            <h5><i class="fas fa-exclamation-circle"></i> Error</h5>
+                            <p id="errorMessage">An error occurred while loading purchase details.</p>
+                            <a href="/books" class="btn btn-primary">Return to Books</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let sessionId = null;
+    let expirationTimer = null;
+
+    $(document).ready(function() {
+        // Get session ID from URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        sessionId = urlParams.get('sessionId');
+
+        if (!sessionId) {
+            showError('No purchase session found. Please try again.');
+            return;
+        }
+
+        loadPurchaseDetails();
+    });
+
+    function loadPurchaseDetails() {
+        // For now, we'll get the details from localStorage that were set during purchase initiation
+        const purchaseData = JSON.parse(localStorage.getItem('purchaseConfirmation') || '{}');
+        
+        if (!purchaseData.sessionId || purchaseData.sessionId !== sessionId) {
+            showError('Invalid or expired purchase session.');
+            return;
+        }
+
+        // Display purchase details
+        $('#bookTitle').text(purchaseData.bookTitle || 'Unknown Book');
+        $('#bookAuthor').text(purchaseData.bookAuthor || 'Unknown Author');
+        $('#bookPrice').text('$' + (purchaseData.price || 0).toFixed(2));
+        $('#totalPrice').text('$' + (purchaseData.price || 0).toFixed(2));
+        
+        // Calculate current and remaining credit
+        const currentCredit = parseFloat(localStorage.getItem('userCreditLimit') || '0');
+        const remainingCredit = purchaseData.remainingCredit || (currentCredit - (purchaseData.price || 0));
+        
+        $('#currentCredit').text('$' + currentCredit.toFixed(2));
+        $('#remainingCredit').text('$' + remainingCredit.toFixed(2));
+
+        // Set up expiration timer
+        if (purchaseData.expiresAt) {
+            const expirationTime = new Date(purchaseData.expiresAt); // expiresAt is now epoch milliseconds
+            startCountdown(expirationTime);
+        }
+
+        // Show confirmation content
+        $('#loadingMessage').hide();
+        $('#confirmationContent').show();
+    }
+
+    function startCountdown(expirationTime) {
+        expirationTimer = setInterval(function() {
+            const now = new Date();
+            const timeLeft = expirationTime - now;
+
+            if (timeLeft <= 0) {
+                clearInterval(expirationTimer);
+                showError('Your purchase reservation has expired. Please try again.');
+                return;
+            }
+
+            const minutes = Math.floor(timeLeft / 60000);
+            const seconds = Math.floor((timeLeft % 60000) / 1000);
+            
+            $('#timeRemaining').text(`${minutes}:${seconds.toString().padStart(2, '0')}`);
+        }, 1000);
+    }
+
+    function confirmPurchase() {
+        const authToken = localStorage.getItem("authToken");
+        if (!authToken) {
+            window.location.href = "/login";
+            return;
+        }
+
+        $('#confirmBtn').prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Processing...');
+
+        $.ajax({
+            url: '/api/purchase/confirm',
+            type: 'POST',
+            headers: {
+                'Authorization': 'Bearer ' + authToken,
+                'Content-Type': 'application/json'
+            },
+            data: JSON.stringify({
+                sessionId: sessionId
+            }),
+            success: function(response) {
+                // Clear purchase data from localStorage
+                localStorage.removeItem('purchaseConfirmation');
+                
+                // Update user credit limit
+                localStorage.setItem('userCreditLimit', response.remainingCredit);
+                
+                // Show success and redirect
+                alert('Purchase completed successfully! ' + response.bookTitle + ' has been added to your library.');
+                window.location.href = '/users?tab=books';
+            },
+            error: function(xhr) {
+                const errorResponse = xhr.responseJSON;
+                const errorMsg = errorResponse ? (errorResponse.message || errorResponse.error) : 'Purchase failed. Please try again.';
+                showError(errorMsg);
+                $('#confirmBtn').prop('disabled', false).html('<i class="fas fa-check"></i> Confirm Purchase');
+            }
+        });
+    }
+
+    function cancelPurchase() {
+        const authToken = localStorage.getItem("authToken");
+        if (!authToken) {
+            window.location.href = "/login";
+            return;
+        }
+
+        $.ajax({
+            url: '/api/purchase/cancel',
+            type: 'POST',
+            headers: {
+                'Authorization': 'Bearer ' + authToken,
+                'Content-Type': 'application/json'
+            },
+            data: JSON.stringify({
+                sessionId: sessionId
+            }),
+            success: function(response) {
+                // Clear purchase data from localStorage
+                localStorage.removeItem('purchaseConfirmation');
+                
+                // Redirect back to books
+                window.location.href = '/books';
+            },
+            error: function(xhr) {
+                // Even if cancel fails, redirect back to books
+                localStorage.removeItem('purchaseConfirmation');
+                window.location.href = '/books';
+            }
+        });
+    }
+
+    function showError(message) {
+        $('#errorMessage').text(message);
+        $('#loadingMessage').hide();
+        $('#confirmationContent').hide();
+        $('#errorContent').show();
+        
+        // Clear any running timer
+        if (expirationTimer) {
+            clearInterval(expirationTimer);
+        }
+    }
+
+    // Clear timer when leaving page
+    $(window).on('beforeunload', function() {
+        if (expirationTimer) {
+            clearInterval(expirationTimer);
+        }
+    });
+</script>
+
+<!-- Include navigation script fragment -->
+<div th:replace="~{fragments/topnav :: topnav-script}"></div>
+</body>
+</html>

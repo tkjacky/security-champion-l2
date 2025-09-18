@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>SecBooks - Online Bookstore</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" th:href="@{/favicon.ico}">
+    <link rel="icon" type="image/svg+xml" th:href="@{/favicon.svg}">
+
+    <link rel="stylesheet" th:href="@{/css/bootstrap.min.css}">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <script th:src="@{/js/jquery.min.js}"></script>
+    <script th:src="@{/js/bootstrap.bundle.min.js}"></script>
+</head>
+<body>
+
+<!-- Include navigation fragment -->
+<div th:replace="~{fragments/topnav :: topnav}"></div>
+
+<div class="container mt-4">
+    <div class="jumbotron bg-primary text-white p-5 rounded mb-4">
+        <h1 class="display-4">Welcome to SecBooks!</h1>
+        <p class="lead">Your premier online bookstore with thousands of titles. Find your next great read today!</p>
+        <hr class="my-4">
+        <p>Browse our collection, manage your account, and enjoy secure shopping.</p>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body text-center">
+                    <h5 class="card-title">Browse Books</h5>
+                    <p class="card-text">Search our extensive catalog</p>
+                    <a href="/books" class="btn btn-primary">Browse Catalog</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body text-center">
+                    <h5 class="card-title">My Account</h5>
+                    <p class="card-text">Manage your profile and orders</p>
+                    <a href="/login" class="btn btn-success">Sign In</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body text-center">
+                    <h5 class="card-title">Store Locator</h5>
+                    <p class="card-text">Find SecBooks stores near you</p>
+                    <a href="/bookstore-location" class="btn btn-info">Find Stores</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Featured Section -->
+    <div class="row">
+        <div class="col-md-6">
+            <h3>Store Management</h3>
+            <p>Access admin features and store analytics</p>
+            <a href="/users" class="btn btn-warning">Staff Dashboard</a>
+        </div>
+        <div class="col-md-6">
+            <h3>Advanced Search</h3>
+            <p>Use our enhanced search with filters</p>
+            <a href="/advanced_search" class="btn btn-secondary">Advanced Search</a>
+        </div>
+    </div>
+
+    <!-- Customer Reviews Section -->
+    <div class="mt-5">
+        <h3>Recent Customer Reviews</h3>
+        <div class="row">
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h6>"Great selection and fast delivery!"</h6>
+                        <small class="text-muted">- Alice M.</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h6>"Easy to use website, love it!"</h6>
+                        <small class="text-muted">- Bob K.</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h6>"Best prices for technical books."</h6>
+                        <small class="text-muted">- Charlie D.</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<footer class="bg-dark text-light mt-5 py-4">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-6">
+                <h5>SecBooks Online</h5>
+                <p>Your trusted partner for books since 2025</p>
+            </div>
+            <div class="col-md-6">
+                <h5>Contact</h5>
+                <p>Email: support@secbooks.com<br>Phone: 1-800-SECBOOK</p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- Include navigation script fragment -->
+<div th:replace="~{fragments/topnav :: topnav-script}"></div>
+</body>
+</html>

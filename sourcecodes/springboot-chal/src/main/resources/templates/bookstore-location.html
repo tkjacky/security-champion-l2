@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Store Locator - SecBooks</title>
+    <link rel="stylesheet" th:href="@{/css/bootstrap.min.css}">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <script th:src="@{/js/jquery.min.js}"></script>
+    <script th:src="@{/js/bootstrap.bundle.min.js}"></script>
+</head>
+<body>
+
+<!-- Include navigation fragment -->
+<div th:replace="~{fragments/topnav :: topnav}"></div>
+
+<div class="container mt-4">
+    <h1>SecBooks Store Locator</h1>
+    <p class="text-info">Find the nearest SecBooks bookstore in your area</p>
+    
+    <a href="/" class="btn btn-secondary mb-4">← Back to Home</a>
+
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h3>Find Nearby Bookstores</h3>
+        </div>
+        <div class="card-body">
+            <form action="/bookstore-location" method="post">
+                <div class="mb-3">
+                    <label for="location" class="form-label">Enter your location:</label>
+                    <input type="text" class="form-control" id="location" name="location" required
+                        th:value="${location}" placeholder="City, State or ZIP code">
+                    <small class="text-muted">We'll find the closest SecBooks stores to your location</small>
+                </div>
+                <button type="submit" class="btn btn-primary">Find Stores</button>
+            </form>
+        </div>
+    </div>
+
+    <div th:if="${storeResults}" class="mt-4">
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h4>Store Locations Near You</h4>
+            </div>
+            <div class="card-body">
+                <div th:utext="${storeResults}"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Store Information -->
+    <div class="row mt-5">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h5>Store Services</h5>
+                </div>
+                <div class="card-body">
+                    <ul>
+                        <li>Book browsing and purchasing</li>
+                        <li>Special orders and reservations</li>
+                        <li>Author events and book signings</li>
+                        <li>Reading groups and clubs</li>
+                        <li>Gift cards and wrapping</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-warning text-dark">
+                    <h5>Store Hours</h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>Monday - Friday:</strong> 9:00 AM - 9:00 PM</p>
+                    <p><strong>Saturday:</strong> 9:00 AM - 10:00 PM</p>
+                    <p><strong>Sunday:</strong> 10:00 AM - 8:00 PM</p>
+                    <p><strong>Holidays:</strong> Check individual store listings</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contact Information -->
+    <div class="card mt-4">
+        <div class="card-header bg-secondary text-white">
+            <h5>Need Help?</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <p><strong>Customer Service:</strong><br>
+                    Phone: 1-800-SECBOOK<br>
+                    Email: support@secbooks.com</p>
+                </div>
+                <div class="col-md-6">
+                    <p><strong>Store Management:</strong><br>
+                    Phone: 1-800-SECMGMT<br>
+                    Email: stores@secbooks.com</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<footer class="bg-dark text-light mt-5 py-4">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-6">
+                <h5>SecBooks Online</h5>
+                <p>Your trusted partner for books since 2025</p>
+            </div>
+            <div class="col-md-6">
+                <h5>Contact</h5>
+                <p>Email: support@secbooks.com<br>Phone: 1-800-SECBOOK</p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- Include navigation script fragment -->
+<div th:replace="~{fragments/topnav :: topnav-script}"></div>
+</body>
+</html>

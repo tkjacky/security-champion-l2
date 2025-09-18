@@ -1,0 +1,24 @@
+# CodeQL Database Files
+# Students will create databases here, but we don't want to commit them
+*-db/
+*-db.lock
+*.dbscheme
+*.dbscheme.stats
+
+# CodeQL query results
+*.csv
+*.sarif
+*.xml
+results/
+
+# CodeQL cache and temporary files
+.codeql/
+*.tmp
+*.log
+
+# Keep these files
+!sample.js
+!sample.ql
+!codeql.md
+!Dockerfile*
+!.gitignore

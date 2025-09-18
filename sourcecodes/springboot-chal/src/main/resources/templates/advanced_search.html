@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Advanced Book Search - SecBooks</title>
+    <link rel="stylesheet" th:href="@{/css/bootstrap.min.css}">
+    <script th:src="@{/js/jquery.min.js}"></script>
+</head>
+<body>
+
+<!-- Include navigation fragment -->
+<div th:replace="~{fragments/topnav :: topnav}"></div>
+
+<div class="container mt-4">
+    <h1>Advanced Book Search</h1>
+    <p class="text-info">Find your perfect book using our advanced search features</p>
+    
+    <a href="/" class="btn btn-secondary mb-4">← Back to Home</a>
+
+    <!-- Book Review Search -->
+    <div class="card mb-4" id="xss-section">
+        <div class="card-header bg-info text-white">
+            <h3>Search Book Reviews</h3>
+        </div>
+        <div class="card-body">
+            <p><strong>Find books by customer review keywords</strong></p>
+            
+            <form action="/advanced_search/xss" method="post">
+                <div class="mb-3">
+                    <label class="form-label">Review Keywords:</label>
+                    <input type="text" name="userInput" class="form-control" 
+                           th:value="${xssInput}" placeholder="Enter review keywords (e.g., amazing, disappointing)">
+                    <small class="text-muted">Search for books mentioned in customer reviews</small>
+                </div>
+                <button type="submit" class="btn btn-info">Search Reviews</button>
+            </form>
+            
+            <div th:if="${xssResult}" class="mt-3">
+                <div th:class="${xssStatus == 'Passed'} ? 'alert alert-success' : 'alert alert-danger'">
+                    <strong>Search Status:</strong> <span th:text="${xssStatus}"></span>
+                    <span th:if="${validationMethod}" th:text="' (' + ${validationMethod} + ')'"></span>
+                </div>
+                
+                <!-- Search Results Display -->
+                <div class="alert alert-info mt-2">
+                    <strong>Search Results:</strong>
+                    <div th:if="${xssStatus == 'Passed'}">
+                        <div th:utext="${xssResult}"></div>
+                        <div class="mt-2" id="reviewSearchResults">
+                            <p class="text-info">Loading review search results...</p>
+                        </div>
+                    </div>
+                    <div th:if="${xssStatus != 'Passed'}" class="text-muted">
+                        No results to display
+                    </div>
+                </div>
+                
+                <!-- JavaScript to fetch actual review results -->
+                <script th:if="${xssStatus == 'Passed'}" th:inline="javascript">
+                    $(document).ready(function() {
+                        var searchTerm = /*[[${xssInput}]]*/ '';
+                        if (searchTerm && searchTerm.trim() !== '') {
+                            // Fetch actual review search results from API
+                            $.ajax({
+                                url: '/api/books/reviews/search',
+                                method: 'GET',
+                                data: { keyword: searchTerm },
+                                success: function(response) {
+                                    var resultsHtml = '<p class="text-success">Found ' + response.count + ' reviews containing "' + searchTerm + '":</p>';
+                                    if (response.data && response.data.length > 0) {
+                                        resultsHtml += '<ul class="list-unstyled mt-2">';
+                                        response.data.forEach(function(review) {
+                                            resultsHtml += '<li class="mb-2">• <strong>' + review.reviewTitle + '</strong> (Rating: ' + review.rating + '/5)<br/>';
+                                            resultsHtml += '<small class="text-muted">Book ID: ' + review.bookId + ' | Helpful: ' + review.helpfulCount + ' votes</small><br/>';
+                                            resultsHtml += '<em>"' + review.reviewText.substring(0, 100) + '..."</em></li>';
+                                        });
+                                        resultsHtml += '</ul>';
+                                    } else {
+                                        resultsHtml += '<p class="text-muted">No reviews found for this keyword.</p>';
+                                    }
+                                    $('#reviewSearchResults').html(resultsHtml);
+                                },
+                                error: function() {
+                                    $('#reviewSearchResults').html('<p class="text-danger">Error loading review results.</p>');
+                                }
+                            });
+                        }
+                    });
+                </script>
+            </div>
+        </div>
+    </div>
+
+    <!-- Book Title Search -->
+    <div class="card mb-4" id="dom-xss-section">
+        <div class="card-header bg-light text-dark">
+            <h3>Search Book Title</h3>
+        </div>
+        <div class="card-body">
+            <p><strong>Find books by title keywords (DOM-based search)</strong></p>
+            
+            <div class="mb-3">
+                <label class="form-label">Title Keywords:</label>
+                <input type="text" id="domXssInput" class="form-control" 
+                       placeholder="Enter title keywords (e.g., javascript, security)">
+                <small class="text-muted">Search for books by title - client-side processing</small>
+            </div>
+            <button type="button" class="btn btn-info" onclick="searchBookTitles()">Search Title</button>
+            
+            <!-- Search Results Display -->
+            <div id="domSearchResults" class="mt-3" style="display: none;">
+                <div class="alert alert-success">
+                    <strong>Search Status:</strong> Processing...
+                </div>
+                <div class="alert alert-info">
+                    <strong>Search Results:</strong>
+                    <div id="titleResults"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        function searchBookTitles() {
+            var input = document.getElementById('domXssInput').value;
+            var resultsDiv = document.getElementById('domSearchResults');
+            var titleResultsDiv = document.getElementById('titleResults');
+            
+            // Show results section
+            resultsDiv.style.display = 'block';
+            
+            if (input.trim() === '') {
+                titleResultsDiv.innerHTML = '<p class="text-muted">Please enter search keywords</p>';
+            } else {
+                titleResultsDiv.innerHTML = '<p class="text-warning">Processing search query: ' + input + '</p>';
+                
+                // Fetch real book search results from API
+                $.ajax({
+                    url: '/api/books/search',
+                    method: 'GET',
+                    data: { title: input },
+                    success: function(response) {
+                        var realResultsHtml = '<div class="mt-3"><h5>Book Search Results:</h5>';
+                        if (response.books && response.books.length > 0) {
+                            realResultsHtml += '<p class="text-success">Found ' + response.count + ' books matching "' + input + '":</p>';
+                            realResultsHtml += '<ul class="list-unstyled mt-2">';
+                            response.books.forEach(function(book, index) {
+                                realResultsHtml += '<li class="mb-3 p-2 border rounded">• <strong>' + book.title + '</strong> by ' + book.author + '<br/>';
+                                realResultsHtml += '<small class="text-muted">ISBN: ' + book.isbn + ' | Category: ' + book.category + ' | Rating: ' + book.rating + '/5</small><br/>';
+                                realResultsHtml += '<div class="mt-2">';
+                                realResultsHtml += '<span class="text-success">Original Price: $' + book.price + '</span> | ';
+                                realResultsHtml += '<span class="text-info">Stock: ' + book.stock + '</span><br/>';
+                                realResultsHtml += '<div class="mt-2">';
+                                realResultsHtml += '<label class="small">Apply Discount Formula:</label> ';
+                                realResultsHtml += '<input type="text" class="form-control form-control-sm d-inline-block" style="width: 200px;" ';
+                                realResultsHtml += 'id="discount_' + index + '" placeholder="e.g., ' + book.price + ' * 0.9" />';
+                                realResultsHtml += '<button class="btn btn-sm btn-primary ml-1" onclick="calculatePrice(' + index + ', ' + book.price + ')">Calculate</button>';
+                                realResultsHtml += '<div id="price_result_' + index + '" class="mt-1 small"></div>';
+                                realResultsHtml += '</div></div></li>';
+                            });
+                            realResultsHtml += '</ul></div>';
+                        } else {
+                            realResultsHtml += '<p class="text-muted">No books found matching "' + input + '".</p></div>';
+                        }
+                        titleResultsDiv.innerHTML += realResultsHtml;
+                    },
+                    error: function() {
+                        titleResultsDiv.innerHTML += '<div class="mt-3"><p class="text-danger">Error loading book search results.</p></div>';
+                    }
+                });
+                
+
+            }
+            
+            // Auto-scroll to results
+            setTimeout(function() {
+                resultsDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }, 100);
+        }
+
+        // Function to calculate discounted price using flexible formulas
+        function calculatePrice(bookIndex, originalPrice) {
+            var discountInput = document.getElementById('discount_' + bookIndex);
+            var resultDiv = document.getElementById('price_result_' + bookIndex);
+            var formula = discountInput.value.trim();
+            
+            if (formula === '') {
+                resultDiv.innerHTML = '<span class="text-muted">Enter a discount formula</span>';
+                return;
+            }
+            
+            try {
+                // Allow flexible discount calculations
+                // Users can input formulas like: "25.99 * 0.8" or "25.99 - 5" or "25.99 * (1 - 0.2)"
+                var discountedPrice = eval(formula);
+                
+                if (isNaN(discountedPrice) || discountedPrice < 0) {
+                    resultDiv.innerHTML = '<span class="text-danger">Invalid calculation result</span>';
+                    return;
+                }
+                
+                var savings = originalPrice - discountedPrice;
+                var percentOff = ((savings / originalPrice) * 100).toFixed(1);
+                
+                resultDiv.innerHTML = '<span class="text-success"><strong>Final Price: $' + discountedPrice.toFixed(2) + '</strong></span>';
+                if (savings > 0) {
+                    resultDiv.innerHTML += '<br/><small class="text-success">You save: $' + savings.toFixed(2) + ' (' + percentOff + '% off)</small>';
+                } else if (savings < 0) {
+                    resultDiv.innerHTML += '<br/><small class="text-warning">Price increased by: $' + Math.abs(savings).toFixed(2) + '</small>';
+                }
+                
+            } catch (error) {
+                resultDiv.innerHTML = '<span class="text-danger">Error in formula: ' + error.message + '</span>';
+            }
+        }
+        
+        // Allow Enter key to trigger search
+        document.getElementById('domXssInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                searchBookTitles();
+            }
+        });
+    </script>
+
+    <!-- External Book Database Search -->
+    <div class="card mb-4" id="url-section">
+        <div class="card-header bg-warning text-dark">
+            <h3>External Publisher Search</h3>
+        </div>
+        <div class="card-body">
+            <p><strong>Search books from our publishing partners</strong></p>
+            
+            <form action="/advanced_search/url" method="post">
+                <div class="mb-3">
+                    <label class="form-label">Publisher API URL:</label>
+                    <input type="text" name="url" class="form-control" 
+                           th:value="${urlInput}" placeholder="Enter publisher website URL">
+                    <small class="text-muted">Connect to verified publisher databases</small>
+                </div>
+                <button type="submit" class="btn btn-warning">Search Publisher</button>
+            </form>
+            
+            <div th:if="${urlResult}" class="mt-3">
+                <div th:class="${urlStatus == 'Passed'} ? 'alert alert-success' : 'alert alert-danger'">
+                    <strong>Connection Status:</strong> <span th:text="${urlStatus}"></span>
+                    <span th:if="${validationMethod}" th:text="' (' + ${validationMethod} + ')'"></span>
+                </div>
+                <div class="alert alert-info">
+                    <strong>Original URL:</strong> <span th:text="${urlInput}"></span><br/>
+                    <strong>Verified URL:</strong> <span th:text="${normalizedUrl}"></span><br/>
+                    <strong>Browser Host:</strong> <span th:text="${browserHost}"></span><br/>
+                    <strong>App Validation Host:</strong> <span th:text="${appValidationHost}"></span><br/>
+                    <strong>Result:</strong> <span th:text="${urlResult}"></span>
+                </div>
+                
+                <div th:if="${urlStatus == 'Passed'}" class="mt-2">
+                    <p class="text-success">Publisher verified! Searching their catalog...</p>
+                    <div class="d-grid gap-2 mt-2">
+                        <button class="btn btn-success" onclick="openPublisherCatalog()" th:data-url="${urlInput}">Browse Publisher Catalog</button>
+                        <small class="text-muted">Opens in new window/tab</small>
+                    </div>
+                    <script th:inline="javascript">
+                        try {
+                            var catalogUrl = /*[[${urlInput}]]*/ '';
+                            if (catalogUrl && catalogUrl.trim() !== '') {
+                                // Auto-open after 1 second delay
+                                setTimeout(function() {
+                                    window.open(catalogUrl, '_blank', 'width=1200,height=800,scrollbars=yes,resizable=yes,toolbar=yes');
+                                }, 1000);
+                            }
+                            function openPublisherCatalog() {
+                                var url = catalogUrl || document.querySelector('[data-url]').getAttribute('data-url');
+                                window.open(url, '_blank', 'width=1200,height=800,scrollbars=yes,resizable=yes,toolbar=yes');
+                            }
+                        } catch (e) {
+                            console.log('Auto-open failed:', e);
+                        }
+                    </script>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Book Search API and Class System -->
+    <div class="card mb-4" id="reflection-section">
+        <div class="card-header bg-danger text-white">
+            <h3>Book Search API and Class</h3>
+        </div>
+        <div class="card-body">
+            <p><strong>Search our comprehensive book database using advanced categorization models</strong></p>
+            
+            <form action="/advanced_search/reflection" method="post">
+                <div class="mb-3">
+                    <label class="form-label">Book Database API:</label>
+                    <select class="form-select" id="apiUrlSelect" onchange="updateApiUrl()">
+                        <option value="">-- Select API Endpoint --</option>
+                        <option value="http://tomcat-chal:8080/api/secchamp/" th:selected="${apiUrl == 'http://tomcat-chal:8080/api/secchamp/'}">SecChamp Book Service</option>
+                        <option value="http://tomcat-chal:8080/api/evil/" th:selected="${apiUrl == 'http://tomcat-chal:8080/api/evil/'}">Evil Book Service</option>
+                        <option value="http://tomcat-chal:8080/api/general/" th:selected="${apiUrl == 'http://tomcat-chal:8080/api/general/'}">General Reflection API</option>                        
+                    </select>
+                    <!-- Hidden input for actual submission -->
+                    <input type="hidden" name="apiUrl" id="apiUrlHidden" th:value="${apiUrl}">
+                    <input type="text" id="customApiUrl" class="form-control mt-2" 
+                           style="display: none;" placeholder="Enter custom API URL"
+                           th:value="${apiUrl != 'http://tomcat-chal:8080/api/secchamp/' && apiUrl != 'http://tomcat-chal:8080/api/evil/' && apiUrl != 'http://tomcat-chal:8080/api/general/' ? apiUrl : ''}">>>
+                    <small class="text-muted">Choose a book database service to connect to</small>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Category Model:</label>
+                    <div class="input-group">
+                        <select class="form-select" id="classSelect" onchange="updateClassName()" style="max-width: 200px;">
+                            <option value="">-- Select Model --</option>
+                            <option value="secchamp.Info" th:selected="${className == 'secchamp.Info'}">SecChamp Model</option>
+                            <option value="evil.Info" th:selected="${className == 'evil.Info'}">Evil Model</option>                           
+                        </select>
+                        <input type="text" name="className" id="classNameInput" class="form-control" 
+                               th:value="${className}" placeholder="Enter class name">
+                    </div>
+                    <small class="text-muted">Specify which categorization model to use for book classification</small>
+                </div>
+                <button type="submit" class="btn btn-danger">Search Books</button>
+            </form>
+            
+            <div th:if="${reflectionFinalResult}" class="mt-3">
+                <div th:class="${reflectionStatus == 'Passed'} ? 'alert alert-success' : 'alert alert-danger'">
+                    <strong>Search Status:</strong> <span th:text="${reflectionStatus}"></span>
+                </div>
+                <div class="alert alert-info">
+                    <strong>Model Info:</strong> <span th:text="${reflectionResult}"></span><br/>
+                    <strong>Search Result:</strong> <span th:text="${reflectionFinalResult}"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Book Metadata Import -->
+    <div class="card mb-4" id="prototype-section">
+        <div class="card-header bg-success text-white">
+            <h3>Import Book Metadata</h3>
+        </div>
+        <div class="card-body">
+            <p><strong>Import book information from JSON metadata files</strong></p>
+            
+            <form action="/advanced_search/prototype" method="post">
+                <div class="mb-3">
+                    <label class="form-label">Book Metadata JSON:</label>
+                    <textarea name="jsonInput" class="form-control" rows="4" 
+                              th:text="${jsonInput}" placeholder='{"title": "Book Title", "author": "Author Name", "isbn": "1234567890"}'></textarea>
+                    <small class="text-muted">Upload book metadata in JSON format</small>
+                </div>
+                <button type="submit" class="btn btn-success">Import Metadata</button>
+            </form>
+            
+            <div th:if="${prototypeResult}" class="mt-3">
+                <div th:class="${prototypeStatus == 'Passed'} ? 'alert alert-success' : 'alert alert-danger'">
+                    <strong>Import Status:</strong> <span th:text="${prototypeStatus}"></span>
+                    <span th:if="${validationMethod}" th:text="' (' + ${validationMethod} + ')'"></span>
+                </div>
+                <div class="alert alert-info">
+                    <strong>Import Result:</strong> <span th:text="${prototypeResult}"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mb-4" id="publisher-section">
+        <div class="card-header bg-primary text-white">
+            <h3>Book Publisher Verification</h3>
+        </div>
+        <div class="card-body">
+            <p><strong>Verify and connect to trusted book publisher websites</strong></p>
+            
+            <form action="/advanced_search/publisher" method="post">
+                <div class="mb-3">
+                    <label class="form-label">Publisher Website URL:</label>
+                    <input type="text" name="publisherUrl" class="form-control" 
+                           th:value="${publisherUrl}" placeholder="https://www.trusted-publisher.com/api">
+                    <small class="text-muted">Enter a publisher website URL to verify its authenticity (try: https://www.trusted-publisher.com%252f@evil.com)</small>
+                </div>
+                <button type="submit" class="btn btn-primary">Verify Publisher</button>
+            </form>
+            
+            <div th:if="${publisherResult}" class="mt-3">
+                <div th:class="${publisherStatus == 'Verified'} ? 'alert alert-success' : 'alert alert-danger'">
+                    <strong>Verification Status:</strong> <span th:text="${publisherStatus}"></span>
+                </div>
+                <div class="alert alert-info">
+                    <strong>Original URL:</strong> <span th:text="${publisherUrl}"></span><br/>
+                    <strong>Processed URL:</strong> <span th:text="${processedUrl}"></span><br/>
+                    <strong>Result:</strong> <span th:text="${publisherResult}"></span>
+                </div>
+                
+                <div th:if="${publisherStatus == 'Verified' or publisherStatus == 'Danger'}" class="mt-2">
+                    <p class="text-success">Publisher verified! Opening website automatically...</p>
+                    <div class="d-grid gap-2 mt-2">
+                        <button class="btn btn-success" onclick="openPublisherWindow()" th:data-url="${publisherUrl}">Visit Publisher Website</button>
+                        <small class="text-muted">Click the button above if the website didn't open automatically</small>
+                    </div>
+                    <script th:inline="javascript">
+                        try {
+                            var publisherUrl = /*[[${publisherUrl}]]*/ '';
+                            if (publisherUrl && publisherUrl.trim() !== '') {
+                                setTimeout(function() {
+                                    window.open(publisherUrl, '_blank', 'width=1024,height=768,scrollbars=yes,resizable=yes');
+                                }, 500);
+                            }
+                            function openPublisherWindow() {
+                                window.open(publisherUrl, '_blank', 'width=1024,height=768,scrollbars=yes,resizable=yes');
+                            }
+                        } catch (e) {
+                            console.log('Auto-open failed:', e);
+                        }
+                    </script>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mb-4" id="book-service-section">
+        <div class="card-header bg-secondary text-white">
+            <h3>Book Service Integration</h3>
+        </div>
+        <div class="card-body">
+            <p><strong>This section demonstrates REST Template integration with external services.</strong></p>
+            <div class="alert alert-info">
+                <strong>How it works:</strong>
+                <ol class="mb-0">
+                    <li>System queries the Target Service URL about the Request Entity Class</li>
+                    <li>Uses Java reflection to load the Response Type Class</li>
+                    <li>Makes a POST request to the service with book data</li>
+                    <li>Returns the response in the specified format</li>
+                </ol>
+            </div>
+            
+            <form action="/advanced_search/book-service" method="post">
+                <div class="mb-3">
+                    <label class="form-label">Target Service URL:</label>
+                    <input type="text" name="serviceUrl" class="form-control" 
+                           th:value="${serviceUrl}" placeholder="http://tomcat-chal:8080/api/secchamp/">
+                    <small class="text-muted">The REST API endpoint where the request will be sent (try: http://tomcat-chal:8080/api/secchamp/)</small>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Request Entity Class:</label>
+                    <input type="text" name="requestClass" class="form-control" 
+                           th:value="${requestClass}" placeholder="secchamp.secchamp_http">
+                    <small class="text-muted">Java class name to query information about (try: secchamp.secchamp_http, secchamp.Info, evil.Info)</small>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Response Type Class:</label>
+                    <input type="text" name="responseClass" class="form-control" 
+                           th:value="${responseClass}" placeholder="java.lang.String">
+                    <small class="text-muted">Java class type used to deserialize the response via reflection (try: java.lang.String)</small>
+                </div>
+                <button type="submit" class="btn btn-secondary">Create Book Entry</button>
+            </form>
+            
+            <div th:if="${bookServiceResult}" class="mt-3">
+                <div th:class="${bookServiceStatus == 'Success'} ? 'alert alert-success' : 'alert alert-danger'">
+                    <strong>Creation Status:</strong> <span th:text="${bookServiceStatus}"></span>
+                </div>
+                <div th:class="${#strings.containsIgnoreCase(bookServiceResult, 'error')} ? 'alert alert-danger' : 'alert alert-info'">
+                    <strong>Service URL:</strong> <span th:text="${serviceUrl}"></span><br/>
+                    <strong>Request Class:</strong> <span th:text="${requestClass}"></span><br/>
+                    <strong>Response Class:</strong> <span th:text="${responseClass}"></span><br/>
+                    <strong>Result:</strong> <span th:text="${bookServiceResult}"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Help Section -->
+    <div class="card mt-4">
+        <div class="card-header bg-secondary text-white">
+            <h4>Search Tips</h4>
+        </div>
+        <div class="card-body">
+            <p><strong>How to use Advanced Search:</strong></p>
+            <ul>
+                <li><strong>Review Search:</strong> Find books mentioned in customer reviews</li>
+                <li><strong>Publisher Search:</strong> Access external publisher catalogs</li>
+                <li><strong>Book Search API and Class:</strong> Find books using categorization models</li>
+                <li><strong>Metadata Import:</strong> Bulk import book information</li>
+                <li><strong>Publisher Verification:</strong> Verify and connect to trusted publisher websites</li>
+                <li><strong>Book Service Integration:</strong> Integrate with external book services via REST Template</li>
+            </ul>
+            <p class="text-muted"><strong>Note:</strong> All search features are powered by our secure validation system</p>
+        </div>
+    </div>
+</div>
+
+<footer class="bg-dark text-light mt-5 py-4">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-6">
+                <h5>SecBooks Online</h5>
+                <p>Advanced search powered by cutting-edge technology</p>
+            </div>
+            <div class="col-md-6">
+                <h5>Need Help?</h5>
+                <p>Email: search-support@secbooks.com</p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<script>
+    // Auto-scroll to the active section after form submission
+    $(document).ready(function() {
+        var activeSection = /*[[${activeSection}]]*/ '';
+        console.log('Page loaded. Active section:', activeSection); // Debug log
+        
+        if (activeSection && activeSection.trim() !== '') {
+            var targetSection = '#' + activeSection + '-section';
+            console.log('Target section:', targetSection); // Debug log
+            
+            if ($(targetSection).length) {
+                console.log('Target section found, scrolling...'); // Debug log
+                
+                // Multiple attempts to ensure scrolling works
+                setTimeout(function() {
+                    console.log('First scroll attempt'); // Debug log
+                    $('html, body').stop().animate({
+                        scrollTop: $(targetSection).offset().top - 100
+                    }, 1500);
+                }, 100);
+                
+                setTimeout(function() {
+                    console.log('Second scroll attempt'); // Debug log
+                    $('html, body').stop().animate({
+                        scrollTop: $(targetSection).offset().top - 100
+                    }, 1000);
+                    
+                    // Add a highlight effect to the active section
+                    $(targetSection).addClass('border-primary').addClass('shadow-lg');
+                    setTimeout(function() {
+                        $(targetSection).removeClass('border-primary').removeClass('shadow-lg');
+                    }, 3000);
+                }, 500);
+                
+                // Final attempt with direct scroll
+                setTimeout(function() {
+                    console.log('Final scroll attempt'); // Debug log
+                    var targetElement = $(targetSection);
+                    if (targetElement.length) {
+                        var offsetTop = targetElement.offset().top - 100;
+                        window.scrollTo({
+                            top: offsetTop,
+                            behavior: 'smooth'
+                        });
+                        console.log('Scrolled to:', offsetTop); // Debug log
+                    }
+                }, 1000);
+            } else {
+                console.log('Target section not found:', targetSection); // Debug log
+            }
+        } else {
+            console.log('No active section specified'); // Debug log
+        }
+        
+        // Initialize dropdown states
+        updateApiUrl();
+        updateClassName();
+    });
+
+    // Prevent page jump on form submission
+    $('form').on('submit', function(e) {
+        console.log('Form submitted'); // Debug log
+        // Store current scroll position as backup
+        sessionStorage.setItem('scrollPosition', window.pageYOffset);
+        sessionStorage.setItem('formSubmitted', 'true');
+    });
+
+    // Fallback scroll restoration if auto-scroll fails
+    $(window).on('load', function() {
+        if (sessionStorage.getItem('formSubmitted') === 'true') {
+            sessionStorage.removeItem('formSubmitted');
+            
+            var activeSection = /*[[${activeSection}]]*/ '';
+            if (activeSection && activeSection.trim() !== '') {
+                setTimeout(function() {
+                    var targetSection = '#' + activeSection + '-section';
+                    var targetElement = $(targetSection);
+                    if (targetElement.length) {
+                        var offsetTop = targetElement.offset().top - 100;
+                        window.scrollTo({
+                            top: offsetTop,
+                            behavior: 'smooth'
+                        });
+                        console.log('Fallback scroll executed'); // Debug log
+                    }
+                }, 200);
+            }
+        }
+    });
+
+    // Handle API URL dropdown changes
+    function updateApiUrl() {
+        var select = document.getElementById('apiUrlSelect');
+        var customInput = document.getElementById('customApiUrl');
+        var hiddenInput = document.getElementById('apiUrlHidden');
+        
+        if (select.value === 'custom') {
+            customInput.style.display = 'block';
+            customInput.required = true;
+            customInput.focus();
+            hiddenInput.value = '';
+        } else if (select.value === '') {
+            customInput.style.display = 'none';
+            customInput.required = false;
+            customInput.value = '';
+            hiddenInput.value = '';
+        } else {
+            customInput.style.display = 'none';
+            customInput.required = false;
+            customInput.value = '';
+            hiddenInput.value = select.value;
+        }
+    }
+
+    // Handle class name dropdown changes
+    function updateClassName() {
+        var select = document.getElementById('classSelect');
+        var input = document.getElementById('classNameInput');
+        
+        if (select.value === 'custom') {
+            input.value = '';
+            input.placeholder = 'Enter custom class name';
+            input.readOnly = false;
+            input.focus();
+        } else if (select.value === '') {
+            input.value = '';
+            input.placeholder = 'Select a model or enter custom class name';
+            input.readOnly = false;
+        } else {
+            input.value = select.value;
+            input.readOnly = true;
+        }
+    }
+
+    // Handle form submission
+    $('form[action="/advanced_search/reflection"]').on('submit', function(e) {
+        var apiUrlSelect = document.getElementById('apiUrlSelect');
+        var customApiUrl = document.getElementById('customApiUrl');
+        var hiddenInput = document.getElementById('apiUrlHidden');
+        
+        // Set the actual API URL to submit
+        if (apiUrlSelect.value === 'custom') {
+            hiddenInput.value = customApiUrl.value;
+        } else if (apiUrlSelect.value !== '') {
+            hiddenInput.value = apiUrlSelect.value;
+        }
+        
+        // Validate required fields
+        if (!hiddenInput.value) {
+            alert('Please select an API endpoint or enter a custom URL');
+            e.preventDefault();
+            return false;
+        }
+        
+        var className = document.getElementById('classNameInput').value;
+        if (!className) {
+            alert('Please select a categorization model or enter a custom class name');
+            e.preventDefault();
+            return false;
+        }
+        
+        return true;
+    });
+
+    // Initialize dropdowns
+    console.log('Dropdowns initialized');
+</script>
+
+<!-- Include navigation script fragment -->
+<div th:replace="~{fragments/topnav :: topnav-script}"></div>
+</body>
+</html>
