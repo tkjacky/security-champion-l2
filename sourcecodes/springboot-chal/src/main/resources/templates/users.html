@@ -100,7 +100,9 @@
         th:data-api-cart="@{/api/cart}"
         th:data-api-profile="@{/api/profile}"
         th:data-api-auth-login="@{/api/auth/login}"
-        th:data-api-auth-register="@{/api/auth/register}">
+        th:data-api-auth-register="@{/api/auth/register}"
+        th:data-api-user-books-with-quantities="@{/api/user/books-with-quantities}"
+        th:data-api-sms-send="${/api/sms/send}">
 </div>
 
 <!-- Include navigation fragment -->
@@ -382,6 +384,8 @@
     const apiConfig = $('#apiConfig');
     const usersApiUrl = apiConfig.data('api-users');
     const usersUrl = apiConfig.data('users-url');
+    const booksQuantitleUrl = apiConfig.data('api-user-books-with-quantities');
+    const smsSendUrl = apiConfig.data('api-sms-send')
     if (!authToken) {
         $("#unauthContainer").show();
     } else {
@@ -461,7 +465,7 @@
         }
 
         $.ajax({
-            url: '/api/sms/send',
+            url: smsSendUrl,
             type: 'POST',
             headers: {
                 'Authorization': 'Bearer ' + authToken,
@@ -528,7 +532,7 @@
         }
 
         $.ajax({
-            url: '/api/user/books-with-quantities',
+            url: booksQuantitleUrl,
             method: 'GET',
             headers: {
                 'Authorization': 'Bearer ' + token
