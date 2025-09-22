@@ -89,6 +89,20 @@
 </head>
 <body class="bg-light">
 
+<!-- FIXED: API Configuration Data Attributes using proper Thymeleaf URL expressions -->
+<div id="apiConfig" style="display: none;"
+        th:data-login-url="@{/login}"
+        th:data-users-url="@{/users}"
+        th:data-books-url="@{/books}"
+        th:data-cart-url="@{/cart}"
+        th:data-checkout-url="@{/checkout}"
+        th:data-api-users="@{/api/users}"
+        th:data-api-cart="@{/api/cart}"
+        th:data-api-profile="@{/api/profile}"
+        th:data-api-auth-login="@{/api/auth/login}"
+        th:data-api-auth-register="@{/api/auth/register}">
+</div>
+
 <!-- Include navigation fragment -->
 <div th:replace="~{fragments/topnav :: topnav}"></div>
 
@@ -365,11 +379,13 @@
 
 <script>
     const authToken = localStorage.getItem("authToken");
-
+    const apiConfig = $('#apiConfig');
+    const usersApiUrl = apiConfig.data('api-users');
+    const usersUrl = apiConfig.data('users-url');
     if (!authToken) {
         $("#unauthContainer").show();
     } else {
-        fetch('/api/users', {
+        fetch(usersApiUrl, {
             headers: {
                 'Authorization': 'Bearer ' + authToken
             }
