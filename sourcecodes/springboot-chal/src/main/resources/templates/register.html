@@ -46,6 +46,11 @@
 <div th:replace="~{fragments/topnav :: topnav}"></div>
 
 <div class="container">
+    <!-- API Configuration Data Attributes -->
+    <div id="apiConfig" style="display: none;"
+         th:data-auth-register="@{/api/auth/register}">
+    </div>
+    
     <div class="register-container">
         <div class="register-header">
             <div class="logo">SecBooks</div>
@@ -313,8 +318,12 @@
         const originalText = submitBtn.html();
         submitBtn.html('Creating Account...').prop('disabled', true);
 
+        // Get API URL from data attributes
+        const apiConfig = $('#apiConfig');
+        const registerApiUrl = apiConfig.data('auth-register');
+
         $.ajax({
-            url: '/api/auth/register',
+            url: registerApiUrl,
             type: 'POST',
             contentType: 'application/json',
             data: JSON.stringify(formData),

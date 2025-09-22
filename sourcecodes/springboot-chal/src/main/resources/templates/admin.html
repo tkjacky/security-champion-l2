@@ -14,6 +14,13 @@
 <div th:replace="~{fragments/topnav :: topnav}"></div>
 
 <div class="container mt-4">
+    <!-- API Configuration Data Attributes -->
+    <div id="apiConfig" style="display: none;"
+         th:data-users-api="@{/api/users}"
+         th:data-admin-users-api="@{/api/admin/users}"
+         th:data-admin-books-api="@{/api/admin/books}">
+    </div>
+    
     <div class="row">
         <div class="col-12">
             <h1>Admin Panel</h1>
@@ -450,9 +457,11 @@
 
     function checkAdminAccess() {
         const authToken = localStorage.getItem("authToken");
+        const apiConfig = $('#apiConfig');
+        const usersApiUrl = apiConfig.data('users-api');
         
         $.ajax({
-            url: '/api/users',
+            url: usersApiUrl,
             type: 'GET',
             headers: {
                 'Authorization': 'Bearer ' + authToken
@@ -474,9 +483,11 @@
 
     function loadUsers() {
         const authToken = localStorage.getItem("authToken");
+        const apiConfig = $('#apiConfig');
+        const adminUsersApiUrl = apiConfig.data('admin-users-api');
         
         $.ajax({
-            url: '/api/admin/users',
+            url: adminUsersApiUrl,
             type: 'GET',
             headers: {
                 'Authorization': 'Bearer ' + authToken
@@ -528,7 +539,7 @@
                 if (userIdFromTable === userId) {
                     // Get user data from API to populate form
                     $.ajax({
-                        url: '/api/admin/users',
+                        url: adminUsersApiUrl,
                         type: 'GET',
                         headers: {
                             'Authorization': 'Bearer ' + authToken
@@ -699,9 +710,11 @@
     // Book Management Functions
     function loadBooks() {
         const authToken = localStorage.getItem("authToken");
+        const apiConfig = $('#apiConfig');
+        const adminBooksApiUrl = apiConfig.data('admin-books-api');
         
         $.ajax({
-            url: '/api/admin/books',
+            url: adminBooksApiUrl,
             type: 'GET',
             headers: {
                 'Authorization': 'Bearer ' + authToken

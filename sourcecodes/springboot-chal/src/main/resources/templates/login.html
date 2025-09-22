@@ -42,6 +42,12 @@
 <div th:replace="~{fragments/topnav :: topnav}"></div>
 
 <div class="container">
+    <!-- API Configuration Data Attributes -->
+    <div id="apiConfig" style="display: none;"
+         th:data-users-api="@{/api/users}"
+         th:data-auth-login="@{/api/auth/login}">
+    </div>
+    
     <div class="login-container">
         <div class="login-header">
             <div class="logo">B</div>
@@ -161,9 +167,13 @@
     function checkAuthStatus() {
         const token = localStorage.getItem("authToken");
         if (token) {
+            // Get API URL from data attributes
+            const apiConfig = $('#apiConfig');
+            const usersApiUrl = apiConfig.data('users-api');
+            
             // Validate token by making a test API call
             $.ajax({
-                url: '/api/users',
+                url: usersApiUrl,
                 type: 'GET',
                 headers: {
                     'Authorization': 'Bearer ' + token
@@ -210,8 +220,12 @@
         const originalText = submitBtn.html();
         submitBtn.html('🔄 Signing in...').prop('disabled', true);
 
+        // Get API URL from data attributes
+        const apiConfig = $('#apiConfig');
+        const loginApiUrl = apiConfig.data('auth-login');
+
         $.ajax({
-            url: '/api/auth/login',
+            url: loginApiUrl,
             type: 'POST',
             contentType: 'application/json',
             data: JSON.stringify({ email, password }),
