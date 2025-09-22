@@ -14,9 +14,18 @@
 <div th:replace="~{fragments/topnav :: topnav}"></div>
 
 <div class="container mt-4">
-    <!-- API Configuration Data Attributes -->
+    <!-- FIXED: API Configuration Data Attributes using proper Thymeleaf URL expressions -->
     <div id="apiConfig" style="display: none;"
-         th:data-users-api="@{/api/users}"
+         th:data-login-url="@{/login}"
+         th:data-home-url="@{/}"
+         th:data-users-url="@{/users}"
+         th:data-books-url="@{/books}"
+         th:data-cart-url="@{/cart}"
+         th:data-checkout-url="@{/checkout}"
+         th:data-api-users="@{/api/users}"
+         th:data-api-cart="@{/api/cart}"
+         th:data-api-profile="@{/api/profile}"
+         th:data-api-auth-login="@{/api/auth/login}"
          th:data-admin-users-api="@{/api/admin/users}"
          th:data-admin-books-api="@{/api/admin/books}">
     </div>
@@ -444,7 +453,10 @@
         const authToken = localStorage.getItem("authToken");
         
         if (!authToken) {
-            window.location.href = "/login";
+            // FIXED: Get login URL from data attributes
+            const apiConfig = $('#apiConfig');
+            const loginUrl = apiConfig.data('login-url');
+            window.location.href = loginUrl;
             return;
         }
 
@@ -458,7 +470,9 @@
     function checkAdminAccess() {
         const authToken = localStorage.getItem("authToken");
         const apiConfig = $('#apiConfig');
-        const usersApiUrl = apiConfig.data('users-api');
+        const usersApiUrl = apiConfig.data('api-users');
+        const loginUrl = apiConfig.data('login-url');
+        const homeUrl = apiConfig.data('home-url');
         
         $.ajax({
             url: usersApiUrl,
@@ -471,12 +485,12 @@
                 if (!currentUser.admin) {
                     showError('Access denied. Administrator privileges required.');
                     setTimeout(() => {
-                        window.location.href = "/";
+                        window.location.href = homeUrl;
                     }, 2000);
                 }
             },
             error: function(xhr) {
-                window.location.href = "/login";
+                window.location.href = loginUrl;
             }
         });
     }

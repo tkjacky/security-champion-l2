@@ -42,10 +42,17 @@
 <div th:replace="~{fragments/topnav :: topnav}"></div>
 
 <div class="container">
-    <!-- API Configuration Data Attributes -->
+    <!-- FIXED: API Configuration Data Attributes using proper Thymeleaf URL expressions -->
     <div id="apiConfig" style="display: none;"
-         th:data-users-api="@{/api/users}"
-         th:data-auth-login="@{/api/auth/login}">
+         th:data-login-url="@{/login}"
+         th:data-users-url="@{/users}"
+         th:data-books-url="@{/books}"
+         th:data-cart-url="@{/cart}"
+         th:data-checkout-url="@{/checkout}"
+         th:data-api-users="@{/api/users}"
+         th:data-api-cart="@{/api/cart}"
+         th:data-api-profile="@{/api/profile}"
+         th:data-api-auth-login="@{/api/auth/login}">
     </div>
     
     <div class="login-container">
@@ -163,13 +170,14 @@
 <script th:src="@{/js/jquery.min.js}"></script>
 <script th:src="@{/js/bootstrap.bundle.min.js}"></script>
 <script>
-    // Check if user is already authenticated with a valid token
+    // FIXED: Check if user is already authenticated with a valid token
     function checkAuthStatus() {
         const token = localStorage.getItem("authToken");
         if (token) {
-            // Get API URL from data attributes
+            // Get URLs from data attributes
             const apiConfig = $('#apiConfig');
-            const usersApiUrl = apiConfig.data('users-api');
+            const usersApiUrl = apiConfig.data('api-users');
+            const usersUrl = apiConfig.data('users-url');
             
             // Validate token by making a test API call
             $.ajax({
@@ -179,8 +187,8 @@
                     'Authorization': 'Bearer ' + token
                 },
                 success: function(response) {
-                    // Token is valid, redirect to users page
-                    window.location.href = "/users";
+                    // Token is valid, redirect to users page using Thymeleaf URL
+                    window.location.href = usersUrl;
                 },
                 error: function(xhr) {
                     // Token is invalid/expired, remove it and stay on login page
@@ -220,9 +228,10 @@
         const originalText = submitBtn.html();
         submitBtn.html('🔄 Signing in...').prop('disabled', true);
 
-        // Get API URL from data attributes
+        // FIXED: Get URLs from data attributes
         const apiConfig = $('#apiConfig');
-        const loginApiUrl = apiConfig.data('auth-login');
+        const loginApiUrl = apiConfig.data('api-auth-login');
+        const usersUrl = apiConfig.data('users-url');
 
         $.ajax({
             url: loginApiUrl,
@@ -234,7 +243,7 @@
                 $('#errorText').removeClass('text-danger').addClass('text-success')
                     .text('✅ Login successful! Redirecting to your dashboard...');
                 setTimeout(() => {
-                    window.location.href = '/users';
+                    window.location.href = usersUrl;
                 }, 1000);
             },
             error: function (xhr) {

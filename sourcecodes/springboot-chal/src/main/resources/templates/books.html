@@ -19,12 +19,13 @@
 <div th:replace="~{fragments/topnav :: topnav}"></div>
 
 <div class="container mt-4">
-    <!-- API Configuration Data Attributes -->
+    <!-- FIXED: API Configuration Data Attributes using proper Thymeleaf URL expressions -->
     <div id="apiConfig" style="display: none;"
          th:data-purchase-status="@{/api/purchase/status}"
          th:data-cart-add="@{/api/cart/add}"
          th:data-cart="@{/api/cart}"
-         th:data-purchase-book="@{/api/purchase/book}">
+         th:data-purchase-book="@{/api/purchase/book}"
+         th:data-purchase-confirm-url="@{/purchase/confirm}">
     </div>
     
     <div class="row">
@@ -354,8 +355,12 @@ function purchaseBook(bookId, bookTitle, bookPrice) {
             
             localStorage.setItem('purchaseConfirmation', JSON.stringify(confirmationData));
             
+            // FIXED: Get confirmation URL from data attributes
+            const apiConfig = $('#apiConfig');
+            const confirmUrl = apiConfig.data('purchase-confirm-url');
+            
             // Redirect to confirmation page
-            window.location.href = `/purchase/confirm?sessionId=${response.sessionId}`;
+            window.location.href = `${confirmUrl}?sessionId=${response.sessionId}`;
         },
         error: function(xhr) {
             // Re-enable the button

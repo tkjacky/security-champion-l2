@@ -46,9 +46,18 @@
 <div th:replace="~{fragments/topnav :: topnav}"></div>
 
 <div class="container">
-    <!-- API Configuration Data Attributes -->
+    <!-- FIXED: API Configuration Data Attributes using proper Thymeleaf URL expressions -->
     <div id="apiConfig" style="display: none;"
-         th:data-auth-register="@{/api/auth/register}">
+         th:data-login-url="@{/login}"
+         th:data-users-url="@{/users}"
+         th:data-books-url="@{/books}"
+         th:data-cart-url="@{/cart}"
+         th:data-checkout-url="@{/checkout}"
+         th:data-api-users="@{/api/users}"
+         th:data-api-cart="@{/api/cart}"
+         th:data-api-profile="@{/api/profile}"
+         th:data-api-auth-login="@{/api/auth/login}"
+         th:data-api-auth-register="@{/api/auth/register}">
     </div>
     
     <div class="register-container">
@@ -255,20 +264,25 @@
 <script th:src="@{/js/jquery.min.js}"></script>
 <script th:src="@{/js/bootstrap.bundle.min.js}"></script>
 <script>
-    // Check if user is already authenticated
+    // FIXED: Check if user is already authenticated
     function checkAuthStatus() {
         const token = localStorage.getItem("authToken");
         if (token) {
+            // Get URLs from data attributes
+            const apiConfig = $('#apiConfig');
+            const usersApiUrl = apiConfig.data('api-users');
+            const usersUrl = apiConfig.data('users-url');
+            
             // Verify the token is still valid
-            fetch('/api/users', {
+            fetch(usersApiUrl, {
                 headers: {
                     'Authorization': 'Bearer ' + token
                 }
             })
             .then(response => {
                 if (response.ok) {
-                    // User is already logged in, redirect to dashboard
-                    window.location.href = "/users";
+                    // User is already logged in, redirect to dashboard using Thymeleaf URL
+                    window.location.href = usersUrl;
                 }
                 // If token is invalid, we'll stay on register page
             })
@@ -318,9 +332,10 @@
         const originalText = submitBtn.html();
         submitBtn.html('Creating Account...').prop('disabled', true);
 
-        // Get API URL from data attributes
+        // FIXED: Get URLs from data attributes
         const apiConfig = $('#apiConfig');
-        const registerApiUrl = apiConfig.data('auth-register');
+        const registerApiUrl = apiConfig.data('api-auth-register');
+        const loginUrl = apiConfig.data('login-url');
 
         $.ajax({
             url: registerApiUrl,
@@ -332,7 +347,7 @@
                 localStorage.removeItem("authToken");
                 showSuccess('Account created successfully! You can now log in.');
                 setTimeout(() => {
-                    window.location.href = '/login?registered=true';
+                    window.location.href = loginUrl + '?registered=true';
                 }, 2000);
             },
             error: function (xhr) {
