@@ -25,7 +25,7 @@
         <div class="card-body">
             <p><strong>Find books by customer review keywords</strong></p>
             
-            <form action="/advanced_search/xss" method="post">
+            <form th:action="@{/advanced_search/xss}" method="post">
                 <div class="mb-3">
                     <label class="form-label">Review Keywords:</label>
                     <input type="text" name="userInput" class="form-control" 
@@ -230,7 +230,7 @@
         <div class="card-body">
             <p><strong>Search books from our publishing partners</strong></p>
             
-            <form action="/advanced_search/url" method="post">
+            <form th:action="@{/advanced_search/url}" method="post">
                 <div class="mb-3">
                     <label class="form-label">Publisher API URL:</label>
                     <input type="text" name="url" class="form-control" 
@@ -289,7 +289,7 @@
         <div class="card-body">
             <p><strong>Search our comprehensive book database using advanced categorization models</strong></p>
             
-            <form action="/advanced_search/reflection" method="post">
+            <form th:action="@{/advanced_search/reflection}" method="post">
                 <div class="mb-3">
                     <label class="form-label">Book Database API:</label>
                     <select class="form-select" id="apiUrlSelect" onchange="updateApiUrl()">
@@ -341,7 +341,7 @@
         <div class="card-body">
             <p><strong>Import book information from JSON metadata files</strong></p>
             
-            <form action="/advanced_search/prototype" method="post">
+            <form th:action="@{/advanced_search/prototype}" method="post">
                 <div class="mb-3">
                     <label class="form-label">Book Metadata JSON:</label>
                     <textarea name="jsonInput" class="form-control" rows="4" 
@@ -370,7 +370,7 @@
         <div class="card-body">
             <p><strong>Verify and connect to trusted book publisher websites</strong></p>
             
-            <form action="/advanced_search/publisher" method="post">
+            <form th:action="@{/advanced_search/publisher}" method="post">
                 <div class="mb-3">
                     <label class="form-label">Publisher Website URL:</label>
                     <input type="text" name="publisherUrl" class="form-control" 
@@ -432,7 +432,7 @@
                 </ol>
             </div>
             
-            <form action="/advanced_search/book-service" method="post">
+            <form th:action="@{/advanced_search/book-service}" method="post">
                 <div class="mb-3">
                     <label class="form-label">Target Service URL:</label>
                     <input type="text" name="serviceUrl" class="form-control" 
@@ -638,7 +638,7 @@
     }
 
     // Handle form submission
-    $('form[action="/advanced_search/reflection"]').on('submit', function(e) {
+    $('form[th:action="@{/advanced_search/reflection}"]').on('submit', function(e) {
         var apiUrlSelect = document.getElementById('apiUrlSelect');
         var customApiUrl = document.getElementById('customApiUrl');
         var hiddenInput = document.getElementById('apiUrlHidden');
