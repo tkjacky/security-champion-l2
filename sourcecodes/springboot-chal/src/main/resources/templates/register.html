@@ -166,7 +166,7 @@
                     <div class="form-check">
                         <input class="form-check-input" type="checkbox" id="terms" name="terms" required>
                         <label class="form-check-label" for="terms">
-                            I agree to the <a href="/terms">Terms of Service</a> and <a href="/privacy">Privacy Policy</a>
+                            I agree to the <a th:href="@{/terms}">Terms of Service</a> and <a th:href="@{/privacy}">Privacy Policy</a>
                         </label>
                     </div>
                 </div>
@@ -192,7 +192,7 @@
         <!-- Already have account -->
         <div class="text-center mt-4">
             <p class="mb-2">Already have an account?</p>
-            <a href="/login" class="btn btn-outline-primary">
+            <a th:href="@{/login}" class="btn btn-outline-primary">
                 Sign In
             </a>
         </div>
@@ -234,10 +234,10 @@
             </div>
             <div class="col-md-4">
                 <h5>Quick Links</h5>
-                <a href="/help" class="text-light d-block">Help Center</a>
-                <a href="/shipping" class="text-light d-block">Shipping Info</a>
-                <a href="/returns" class="text-light d-block">Returns & Exchanges</a>
-                <a href="/privacy" class="text-light d-block">Privacy Policy</a>
+                <a th:href="@{/help}" class="text-light d-block">Help Center</a>
+                <a th:href="@{/shipping}" class="text-light d-block">Shipping Info</a>
+                <a th:href="@{/returns}" class="text-light d-block">Returns & Exchanges</a>
+                <a th:href="@{/privacy}" class="text-light d-block">Privacy Policy</a>
             </div>
         </div>
         <hr class="my-4">

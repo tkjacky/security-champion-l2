@@ -28,7 +28,7 @@
                 </div>
                 <div class="card-body">
                     <div class="d-grid gap-2">
-                        <a href="/books" class="btn btn-outline-primary btn-sm" 
+                        <a th:href="@{/books}" class="btn btn-outline-primary btn-sm" 
                            th:classappend="${currentCategory == null} ? 'active' : ''">All Books</a>
                         <a th:each="cat : ${categories}" 
                            th:href="@{/books(category=${cat})}" 
@@ -136,7 +136,7 @@
             <div th:if="${books.empty}" class="text-center mt-5">
                 <h4>No books found</h4>
                 <p class="text-muted">Try adjusting your search criteria or browse different categories.</p>
-                <a href="/books" class="btn btn-primary">View All Books</a>
+                <a th:href="@{/books}" class="btn btn-primary">View All Books</a>
             </div>
         </div>
     </div>
