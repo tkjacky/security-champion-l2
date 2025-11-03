@@ -35,8 +35,8 @@
         
         <div class="back-link">
             <a href="javascript:history.back()">Go Back</a> | 
-            <a href="/">Home</a> |
-            <a href="/books/search.jsp">Search Books</a>
+            <a href="/proxy/18080/">Home</a> |
+            <a href="/proxy/18080/books/search.jsp">Search Books</a>
         </div>
     </div>
 </body>

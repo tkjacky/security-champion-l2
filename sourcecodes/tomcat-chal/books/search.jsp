@@ -4,13 +4,13 @@
 <%@ page import="java.text.SimpleDateFormat" %>
 <%@ page import="javax.servlet.http.Part" %>
 
-<%
+<%    
     // Generate a security token for this session
     String securityToken = UUID.randomUUID().toString();
     session.setAttribute("searchToken", securityToken);
     
     String action = request.getParameter("ACTION");
-    String uploadPath = application.getRealPath("") + File.separator + "uploads";
+    String uploadPath = application.getRealPath("") + "18080/uploads";
     File uploadDir = new File(uploadPath);
     if (!uploadDir.exists()) uploadDir.mkdirs();
     
@@ -25,7 +25,7 @@
                 String fileId = request.getParameter("fileId");
                 
                 // Get the uploaded file part
-                Part filePart = request.getPart("uploadFile");
+                Part filePart = request.getPart("uploadFile");                
                 if (filePart != null && filePart.getSize() > 0) {
                     // Get the filename
                     String contentDisposition = filePart.getHeader("content-disposition");
@@ -227,7 +227,7 @@
                         Size: <%= fileSize %> bytes | Modified: <%= lastModified %>
                     </div>
                     <div style="display: flex; gap: 8px;">
-                        <a href="/uploads/<%= fileName %>" target="_blank" class="btn" style="font-size: 12px; padding: 6px 12px;">View File</a>                        
+                        <a href="/proxy/18080/uploads/<%= fileName %>" target="_blank" class="btn" style="font-size: 12px; padding: 6px 12px;">View File</a>                        
                     </div>
                 </div>
             <%
@@ -307,7 +307,7 @@
             
             try {
                 // Build API URL
-                let apiUrl = 'http://localhost:8080/api/books/search?';
+                let apiUrl = 'https://' + window.location.hostname + '/proxy/8080/api/books/search?';
                 const params = new URLSearchParams();
                 
                 if (query) params.append('title', query);
@@ -378,7 +378,7 @@
             console.log('Load Categories - New token generated:', categoryToken);
             
             try {
-                const response = await fetch('http://localhost:8080/api/books/categories');
+                const response = await fetch('https://' + window.location.hostname + '/proxy/8080/api/books/categories');
                 const data = await response.json();
                 
                 if (data.status === 'success' && data.categories) {
@@ -416,7 +416,7 @@
             // Simulate loading a JS file that contains references to JSP pages and real API endpoints
             console.log('Loading search.js with JSP references and real API endpoints...');
             console.log('Discoverable JSP pages: upload.jsp, admin.jsp, search.jsp');
-            console.log('Hidden API endpoints: /api/evil/index.jsp, /api/secchamp/class.jsp');
+            console.log('Hidden API endpoints:', '/api/evil/index.jsp, ' + '/api/secchamp/class.jsp');
             
             // This would normally load books/search.js, but we'll simulate it
             const jsContent = `
@@ -438,10 +438,10 @@
                         fileUpdate: 'search.jsp?ACTION=UPDATE&fileName=',
                         
                         // Real Spring Boot API endpoints (discoverable)
-                        booksAPI: 'http://localhost:8080/api/books',
-                        searchAPI: 'http://localhost:8080/api/books/search',
-                        categoriesAPI: 'http://localhost:8080/api/books/categories',
-                        featuredAPI: 'http://localhost:8080/api/books/featured',
+                        booksAPI: 'https://' + window.location.hostname + '/proxy/8080/api/books',
+                        searchAPI: 'https://' + window.location.hostname + '/proxy/8080/api/books/search',
+                        categoriesAPI: 'https://' + window.location.hostname + '/proxy/8080/api/books/categories',
+                        featuredAPI: 'https://' + window.location.hostname + '/proxy/8080/api/books/featured',
                     };
                     
                     // Expose all API endpoints including dangerous ones
@@ -511,7 +511,7 @@
             
             try {
                 // Test basic API connectivity
-                const response = await fetch('http://localhost:8080/api/books');
+                const response = await fetch('https://' + window.location.hostname + '/proxy/8080/api/books');
                 const data = await response.json();
                 
                 if (data.success) {
