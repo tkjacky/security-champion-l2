@@ -57,8 +57,10 @@
          th:data-home-url="@{/}"
          th:data-books-url="@{/books}"
          th:data-advanced-search-url="@{/advanced_search}"
+         th:data-comments-url="@{/comments}"
          th:data-users-url="@{/users}"
          th:data-cart-url="@{/cart}"
+         th:data-voucher-url="@{/voucher}"
          th:data-help-url="@{/help}"
          th:data-login-url="@{/login}"
          th:data-register-url="@{/register}"
@@ -97,8 +99,10 @@
                     '/home': 'home',
                     '/books': 'books',
                     '/advanced_search': 'advanced_search',
+                    '/comments': 'comments',
                     '/users': 'users',
                     '/cart': 'cart',
+                    '/voucher': 'voucher',
                     '/help': 'help',
                     '/login': 'login',
                     '/register': 'register',
@@ -121,8 +125,10 @@
                 const homeUrl = config.data('home-url');
                 const booksUrl = config.data('books-url');
                 const advancedSearchUrl = config.data('advanced-search-url');
+                const commentsUrl = config.data('comments-url');
                 const usersUrl = config.data('users-url');
                 const cartUrl = config.data('cart-url');
+                const voucherUrl = config.data('voucher-url');
                 const helpUrl = config.data('help-url');
                 const loginUrl = config.data('login-url');
                 const registerUrl = config.data('register-url');
@@ -135,10 +141,12 @@
                         <a class="nav-link" href="${homeUrl}" data-page="home">Home</a>
                         <a class="nav-link" href="${booksUrl}" data-page="books">Browse Books</a>
                         <a class="nav-link" href="${advancedSearchUrl}" data-page="advanced_search">Advanced Search</a>
+                        <a class="nav-link" href="${commentsUrl}" data-page="comments">Comments</a>
                         <a class="nav-link" href="${usersUrl}" data-page="users">My Library</a>
                         <a class="nav-link cart-icon" href="${cartUrl}" data-page="cart" title="Shopping Cart">
                             🛒 <span class="cart-count" id="cartCount"></span>
                         </a>
+                        <a class="nav-link" href="${voucherUrl}" data-page="voucher">🎟️ Vouchers</a>
                         <a class="nav-link" href="${helpUrl}" data-page="help">Help</a>`;
                     
                     if (isAdmin) {
@@ -154,6 +162,7 @@
                         <a class="nav-link" href="${homeUrl}" data-page="home">Home</a>
                         <a class="nav-link" href="${booksUrl}" data-page="books">Browse Books</a>
                         <a class="nav-link" href="${advancedSearchUrl}" data-page="advanced_search">Advanced Search</a>
+                        <a class="nav-link" href="${commentsUrl}" data-page="help">Comments</a>
                         <a class="nav-link" href="${helpUrl}" data-page="help">Help</a>
                         <a class="nav-link" href="${loginUrl}" data-page="login">Login</a>
                         <a class="nav-link" href="${registerUrl}" data-page="register">Register</a>
