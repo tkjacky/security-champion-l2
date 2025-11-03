@@ -8,6 +8,22 @@
     <link href="/css/style.css" rel="stylesheet">
 </head>
 <body>
+    <!-- FIXED: API Configuration Data Attributes using proper Thymeleaf URL expressions -->
+    <div id="apiConfig" style="display: none;"
+            th:data-login-url="@{/login}"
+            th:data-users-url="@{/users}"
+            th:data-books-url="@{/books}"
+            th:data-cart-url="@{/cart}"
+            th:data-checkout-url="@{/checkout}"
+            th:data-api-users="@{/api/users}"
+            th:data-api-cart="@{/api/cart}"
+            th:data-api-profile="@{/api/profile}"
+            th:data-api-auth-login="@{/api/auth/login}"
+            th:data-api-auth-register="@{/api/auth/register}"
+            th:data-api-user-books-with-quantities="@{/api/user/books-with-quantities}"
+            th:data-api-sms-send="@{/api/sms/send}">
+    </div>
+    
     <div th:replace="fragments/topnav :: topnav"></div>
 
     <div class="container mt-5">
@@ -92,10 +108,12 @@
         // Initialize page with current user data
         document.addEventListener('DOMContentLoaded', function() {
             const authToken = localStorage.getItem("authToken");
+            const apiConfig = $('#apiConfig');
+            const usersApiUrl = apiConfig.data('api-users');
             
             if (authToken) {
                 // Fetch current user data
-                fetch('/api/users', {
+                fetch(usersApiUrl, {
                     headers: {
                         'Authorization': 'Bearer ' + authToken
                     }
@@ -152,7 +170,7 @@
             btn.innerHTML = '⏳ Processing...';
 
             // Call the API to add credits
-            fetch(`/api/users/${currentUserId}/credits`, {
+            fetch(`${usersApiUrl}/${currentUserId}/credits`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
