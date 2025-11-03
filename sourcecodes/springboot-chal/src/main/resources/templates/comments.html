@@ -80,7 +80,22 @@
     </style>
 </head>
 <body>
-
+<!-- FIXED: API Configuration Data Attributes using proper Thymeleaf URL expressions -->
+<div id="apiConfig" style="display: none;"
+        th:data-login-url="@{/login}"
+        th:data-users-url="@{/users}"
+        th:data-books-url="@{/books}"
+        th:data-cart-url="@{/cart}"
+        th:data-checkout-url="@{/checkout}"
+        th:data-api-users="@{/api/users}"
+        th:data-api-cart="@{/api/cart}"
+        th:data-api-profile="@{/api/profile}"
+        th:data-api-auth-login="@{/api/auth/login}"
+        th:data-api-auth-register="@{/api/auth/register}"
+        th:data-api-user-books-with-quantities="@{/api/user/books-with-quantities}"
+        th:data-api-sms-send="@{/api/sms/send}">
+</div>
+    
 <!-- Include navigation fragment -->
 <div th:replace="~{fragments/topnav :: topnav}"></div>
 
@@ -265,6 +280,8 @@ $(document).ready(function() {
     // Load user information
     function loadUserInformation() {
         const authToken = localStorage.getItem("authToken");
+        const apiConfig = $('#apiConfig');
+        const usersApiUrl = apiConfig.data('api-users');
         
         if (!authToken) {
             displayNoUserLoggedIn();
@@ -272,7 +289,7 @@ $(document).ready(function() {
         }
 
         // First get current user ID from the authenticated endpoint
-        fetch('/api/users', {
+        fetch(usersApiUrl, {
             headers: {
                 'Authorization': 'Bearer ' + authToken
             }
@@ -288,7 +305,7 @@ $(document).ready(function() {
             const userId = currentUser.id;
             
             // Now fetch full user details using the public endpoint
-            return fetch(`/api/users/${userId}`);
+            return fetch(`${usersApiUrl}/${userId}`);
         })
         .then(response => {
             if (!response.ok) {
