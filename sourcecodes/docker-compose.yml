@@ -23,7 +23,7 @@ services:
     ports:
       - "18080:8080"
     volumes:
-      - ./tomcat-chal:/usr/local/tomcat/webapps/proxy/18080
+      - ./tomcat-chal:/usr/local/tomcat/webapps/ROOT
     networks:
       - my_network
 

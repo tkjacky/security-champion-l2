@@ -52,8 +52,8 @@ public class CustomForwardHeaderConfig implements WebMvcConfigurer {
         registrationBean.addUrlPatterns("/*");
         registrationBean.setOrder(Ordered.HIGHEST_PRECEDENCE); // Execute first
         registrationBean.setName("customForwardedHeaderFilter");
-        logger.info("Registering CustomForwardedHeaderFilter with header: {} enabled: {}", 
-                   customPrefixHeader, enableCustomPrefix);
+        // logger.info("Registering CustomForwardedHeaderFilter with header: {} enabled: {}", 
+        //            customPrefixHeader, enableCustomPrefix);
         return registrationBean;
     }
 
@@ -94,15 +94,15 @@ public class CustomForwardHeaderConfig implements WebMvcConfigurer {
             String customPrefix = httpRequest.getHeader(customPrefixHeader);
             String originalPrefix = httpRequest.getHeader("X-Forwarded-Prefix");
             
-            logger.info("=== CUSTOM FORWARD HEADER FILTER ===");
-            logger.info("Request URI: {}", httpRequest.getRequestURI());
-            logger.info("Custom header '{}': '{}'", customPrefixHeader, customPrefix);
-            logger.info("Original X-Forwarded-Prefix: '{}'", originalPrefix);
+            // logger.info("=== CUSTOM FORWARD HEADER FILTER ===");
+            // logger.info("Request URI: {}", httpRequest.getRequestURI());
+            // logger.info("Custom header '{}': '{}'", customPrefixHeader, customPrefix);
+            // logger.info("Original X-Forwarded-Prefix: '{}'", originalPrefix);
             
             // Determine which prefix to use (prioritize custom header)
             final String prefixToUse = (customPrefix != null && !customPrefix.isEmpty()) ? customPrefix : originalPrefix;
             
-            logger.info("Prefix to use: '{}'", prefixToUse);
+            // logger.info("Prefix to use: '{}'", prefixToUse);
             
             if (prefixToUse != null && !prefixToUse.isEmpty()) {
                 // Create enhanced wrapped request
