@@ -10,7 +10,7 @@
     session.setAttribute("searchToken", securityToken);
     
     String action = request.getParameter("ACTION");
-    String uploadPath = application.getRealPath("") + "18080/uploads";
+    String uploadPath = application.getRealPath("") + "uploads";
     File uploadDir = new File(uploadPath);
     if (!uploadDir.exists()) uploadDir.mkdirs();
     
